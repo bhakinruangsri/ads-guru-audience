@@ -1,10 +1,11 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="8" width="1240" height="900"><head>
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="8" width="1240" height="900">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ads Guru Audience</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f5f7;--surface:#fff;--ink:#1b2330;--muted:#5b6675;--accent:#0a6c74;--accent-ink:#fff;--line:#d6dce3;--bar:#9fd3d7;--err:#b3261e;color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171e;--surface:#1a212b;--ink:#e6eaf0;--muted:#93a0b0;--accent:#4fc3cc;--accent-ink:#0b1217;--line:#2b3440;--bar:#1f5f66;--err:#f2b8b5;color-scheme:dark}}
@@ -124,11 +125,11 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
     <div class="tools">
       <input id="q" type="text" data-ph="filterPh" data-al="filterPh">
       <input id="min" type="number" min="0" data-ph="minPh" data-al="minPh">
-      <button id="local" disabled="" data-i18n="local"></button>
-      <button id="save" disabled="" data-i18n="save"></button>
+      <button id="local" disabled data-i18n="local"></button>
+      <button id="save" disabled data-i18n="save"></button>
       <button id="copy" data-i18n="copy"></button>
       <button id="copyNames" data-i18n="copyNames"></button>
-      <button id="export" class="primary" disabled="" data-i18n="export"></button>
+      <button id="export" class="primary" disabled data-i18n="export"></button>
     </div>
     <p class="count" id="count"></p>
     <div class="wrap">
@@ -178,7 +179,7 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
       <div><label for="mode" data-i18n="mode"></label><select id="mode"><option value="or" data-i18n="mAny"></option><option value="and" data-i18n="mAll"></option></select></div>
     </div>
     <div class="actions">
-      <button id="est" disabled="" data-i18n="est"></button>
+      <button id="est" disabled data-i18n="est"></button>
       <span id="bres" role="status"></span>
     </div>
   </section>
@@ -192,7 +193,7 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
       <button id="scopy" data-i18n="copy"></button>
       <button id="importBtn" data-i18n="importCsv"></button>
       <button id="sexport" class="primary" data-i18n="export"></button>
-      <input id="importFile" type="file" accept=".csv,text/csv" hidden="">
+      <input id="importFile" type="file" accept=".csv,text/csv" hidden>
     </div>
   </section>
 </main>
@@ -696,5 +697,5 @@ document.querySelectorAll('th button').forEach(b => b.onclick = () => {
 $('#lang').onclick = () => { lang = lang === 'th' ? 'en' : 'th'; try { localStorage.setItem('fbx_lang', lang); } catch (e) {} applyLang(); };
 applyLang();
 </script>
-
-</body></html>
+</body>
+</html>
