@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="14" width="1240" height="900">
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="15" width="1240" height="900">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -236,9 +236,9 @@ const T = {
     catInterests: 'Interests (ความสนใจ)', catBehaviors: 'Behaviors (พฤติกรรม)', catDemographics: 'Demographics (ข้อมูลประชากร)',
     catLife: 'Life events (เหตุการณ์ในชีวิต)', catFamily: 'Family statuses (สถานะครอบครัว)', catIncome: 'Income (รายได้)', catIndustries: 'Industries (อุตสาหกรรม)', catPolitics: 'Politics (การเมือง)',
     catSearching: n => 'กำลังดึงรายการ ' + n + ' (อาจใช้เวลาหลายนาที)', partialFail: 'บางประเภทดึงไม่ได้',
-    seeds: 'คำค้น (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness',
-    seedsHint: 'ใส่คำค้นเพื่อค้นทุกประเภทพร้อมกันและกรองตามชื่อ ถ้าไม่ใส่คำค้น ระบบจะดึงรายการทั้งหมดของประเภทอื่น (Behaviors, Demographics ฯลฯ) ซึ่งอาจมีหลายพันรายการ',
-    suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
+    seeds: 'คำค้น (บรรทัดละคำ)', seedsPh: 'travel\nshopper\nyoga',
+    seedsHint: 'ใส่คำค้นเพื่อค้นทุกประเภทพร้อมกัน ระบบจะจับคู่ทีละคำกับชื่อและหมวด (ไม่ต้องสะกดตรงทุกตัว) ถ้าไม่ใส่คำค้น ระบบจะดึงรายการทั้งหมดของประเภทอื่น ซึ่งอาจมีหลายพันรายการ',
+    suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม (เฉพาะ Interests)', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
     export: 'Export CSV', colName: 'รายการ', colSize: 'ขนาด audience', selAll: 'เลือกทั้งหมดที่แสดง',
     empty0: 'ยังไม่มีผลลัพธ์ ใส่คำค้นแล้วกดค้นหา', emptyF: 'ไม่มีรายการที่ตรงกับตัวกรอง', noCat: 'ไม่มีข้อมูลหมวด', noData: 'ไม่มีข้อมูล', pick: 'เลือก ',
     needToken: 'วาง access token ก่อน',
@@ -280,9 +280,9 @@ const T = {
     catInterests: 'Interests', catBehaviors: 'Behaviors', catDemographics: 'Demographics',
     catLife: 'Life events', catFamily: 'Family statuses', catIncome: 'Income', catIndustries: 'Industries', catPolitics: 'Politics',
     catSearching: n => 'Fetching ' + n + ' (this may take a few minutes)', partialFail: 'Some types failed',
-    seeds: 'Keywords (one per line)', seedsPh: 'yoga\npilates\nwellness',
-    seedsHint: 'Enter keywords to search all types at once and filter by name. If left empty, all items of the other types are fetched (Behaviors, Demographics, etc.), which may be thousands of items.',
-    suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
+    seeds: 'Keywords (one per line)', seedsPh: 'travel\nshopper\nyoga',
+    seedsHint: 'Enter keywords to search all types at once. Each keyword is matched word by word against names and categories, so exact spelling is not required. If left empty, all items of the other types are fetched, which may be thousands of items.',
+    suggest: 'Also fetch related interests (Interests only)', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
     export: 'Export CSV', colName: 'Item', colSize: 'Audience size', selAll: 'Select all shown',
     empty0: 'No results yet. Enter keywords and click Search.', emptyF: 'No items match the filters.', noCat: 'No category data', noData: 'No data', pick: 'Select ',
     needToken: 'Paste your access token first.',
@@ -376,8 +376,22 @@ async function apiAll(params, maxPages = 30) {
   return out;
 }
 
+// การจับคู่คำค้น: แยกเป็นคำ แล้วให้แต่ละคำตรงกับส่วนหนึ่งของชื่อหรือหมวด (ยืดหยุ่นเรื่องการสะกด/ตัว s ท้ายคำ)
+const normText = s => (s || '').toLowerCase().replace(/[^a-z0-9ก-๙\s]/g, ' ');
+const wordsOf = s => normText(s).split(/\s+/).filter(Boolean);
+const wordHit = (text, w) => text.includes(w.slice(0, Math.max(4, w.length - 3)));
+function matchSeeds(d, seeds) {
+  if (!seeds.length) return true;
+  const text = normText((d.name || '') + ' ' + ((d.path || []).join(' ')));
+  return seeds.some(s => {
+    const ws = wordsOf(s);
+    return ws.length > 0 && ws.every(w => wordHit(text, w));
+  });
+}
+
 // เก็บรายการ: key = ประเภท:id เพื่อไม่ให้ id ของคนละประเภทชนกัน
 function add(data, cat, note) {
+  let n = 0;
   for (const d of data) {
     if (!d.id) continue;
     const key = cat + ':' + d.id;
@@ -389,10 +403,12 @@ function add(data, cat, note) {
       high: d.audience_size_upper_bound ?? null,
       path: (d.path || []).join(' > '), note
     });
+    n++;
   }
+  return n;
 }
 
-// ค้นทุกประเภทพร้อมกัน: Interests ค้นด้วยคำค้น ส่วนประเภทอื่นดึงทั้งหมดแล้วกรองตามคำค้น
+// ค้นทุกประเภทพร้อมกัน: Interests ค้นด้วยคำค้น ส่วนประเภทอื่นดึงทั้งหมดแล้วกรองด้วยคำค้น
 async function run() {
   if (busy) return;
   token = $('#token').value.trim();
@@ -406,34 +422,36 @@ async function run() {
   const limit = Math.min(100, Math.max(1, +$('#limit').value || 100));
   const locale = $('#locale').value;
   busy = true; $('#go').disabled = true;
-  const fails = [];
+  const fails = [], perCat = {};
   try {
     for (let i = 0; i < seeds.length; i++) {
       const kw = seeds[i];
       setStatus(t('searching')(i + 1, seeds.length, kw));
       try {
         const data = await api({type: 'adinterest', q: kw, limit, locale});
-        add(data, 'interests', 'seed: ' + kw);
+        perCat.interests = (perCat.interests || 0) + add(data, 'interests', 'seed: ' + kw);
         if ($('#suggest').checked && data.length) {
           const names = data.slice(0, 5).map(d => d.name);
           const sug = await api({type: 'adinterestsuggestion', interest_list: JSON.stringify(names), limit, locale});
-          add(sug, 'interests', 'suggested from: ' + kw);
+          perCat.interests += add(sug, 'interests', 'suggested from: ' + kw);
         }
       } catch (e) { fails.push(kw + ': ' + e.message); }
       render();
       await sleep(400);
     }
-    const kws = seeds.map(s => s.toLowerCase());
     for (const cat of Object.keys(CATS).filter(k => k !== 'interests')) {
       setStatus(t('catSearching')(t(CATS[cat].label)));
       try {
         const data = await apiAll({type: 'adTargetingCategory', class: CATS[cat].cls, limit: 100, locale});
-        const list = kws.length ? data.filter(d => kws.some(k => (d.name || '').toLowerCase().includes(k))) : data;
-        add(list, cat, 'category: ' + CATS[cat].cls);
+        const list = data.filter(d => matchSeeds(d, seeds));
+        perCat[cat] = add(list, cat, 'category: ' + CATS[cat].cls);
       } catch (e) { fails.push(t(CATS[cat].label) + ': ' + e.message); }
       render();
     }
-    const msg = t('done')(rows.size) + (fails.length ? ' · ' + t('partialFail') + ': ' + fails.join(' | ') : '');
+    // แสดงจำนวนแต่ละประเภท เพื่อให้เห็นว่าประเภทไหนได้ผลลัพธ์
+    const summary = Object.keys(CATS).filter(k => perCat[k] !== undefined)
+      .map(k => t(CATS[k].label).split(' (')[0] + ' ' + perCat[k]).join(' · ');
+    const msg = t('done')(rows.size) + (summary ? ' [' + summary + ']' : '') + (fails.length ? ' · ' + t('partialFail') + ': ' + fails.join(' | ') : '');
     setStatus(msg, fails.length > 0 && rows.size === 0);
   } catch (e) { setStatus(e.message, true); }
   busy = false; $('#go').disabled = false;
