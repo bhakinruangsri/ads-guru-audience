@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="5" width="1240" height="900"><head>
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="7" width="1240" height="900"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ads Guru Audience</title>
@@ -16,8 +16,11 @@ body{background:var(--bg);color:var(--ink);font:400 15px/1.55 "IBM Plex Sans Tha
 h1{font-size:20px;font-weight:600;margin:0 0 2px}
 .sub{color:var(--muted);margin:0 0 20px;font-size:14px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.top .tbtns{display:flex;gap:6px}
+.top .tbtns{display:flex;gap:6px;flex-wrap:wrap}
 .top button{padding:4px 10px;font-size:13px}
+.top .tbtns a{padding:4px 10px;font-size:13px;font-weight:500;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center}
+.top .tbtns a:hover{border-color:var(--accent);color:var(--accent)}
+.top .tbtns a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 aside,.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
 label{display:block;font-weight:500;font-size:13px;margin:14px 0 4px}
 label:first-of-type{margin-top:0}
@@ -65,7 +68,7 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
 <aside>
   <div class="top"><h1 id="app-title">Ads Guru Audience</h1>
     <div class="tbtns">
-      <button id="download-html" type="button" data-i18n="dl"></button>
+      <a id="explorer-link" href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" data-i18n="explorer"></a>
       <button id="lang" type="button" aria-label="Language">EN</button>
     </div>
   </div>
@@ -169,8 +172,6 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
 
 <script>
 const $ = s => document.querySelector(s);
-// เก็บโค้ดต้นฉบับของหน้านี้ไว้ก่อนที่ข้อมูลจะถูกเติมลงในหน้า เพื่อใช้ทำไฟล์ดาวน์โหลด
-const ORIGINAL_HTML = '<!doctype html>\n' + document.documentElement.outerHTML;
 const rows = new Map(), picked = new Set();
 let saved = {}, hist = [];
 try { saved = JSON.parse(localStorage.getItem('fbx_saved') || '{}'); hist = JSON.parse(localStorage.getItem('fbx_hist') || '[]'); } catch (e) {}
@@ -178,11 +179,11 @@ const persist = () => { try { localStorage.setItem('fbx_saved', JSON.stringify(s
 const STATUS = ['untested', 'testing', 'winner', 'dropped'];
 const T = {
   th: {
-    dl: 'ดาวน์โหลดไฟล์ HTML',
+    explorer: 'เปิด Graph API Explorer เพื่อคัดลอก access token',
     sub: 'ค้น interest ที่มีอยู่จริงใน Facebook Ads', token: 'Access token', tokenPh: 'วาง token ที่นี่',
     remember: 'จำ token ในเบราว์เซอร์นี้', privacy: 'token เก็บและใช้ในเครื่องคุณเท่านั้น ไม่ส่งไปที่อื่นนอกจาก Meta',
     locale: 'ภาษาผลลัพธ์', market: 'ตลาด', perSeed: 'ต่อคำ', apiVer: 'API version', howTo: 'วิธีสร้าง token',
-    h1: 'เปิด developers.facebook.com แล้วไปที่ Tools > Graph API Explorer', h2: 'เลือก app ที่ได้รับเชิญ',
+    h1: 'กดปุ่ม "เปิด Graph API Explorer เพื่อคัดลอก access token" ด้านบน', h2: 'เลือก app ที่ได้รับเชิญ',
     h3: 'เพิ่มสิทธิ์ ads_read แล้วกด Generate Access Token', h4: 'คัดลอก token มาวาง (หมดอายุภายในไม่กี่ชั่วโมง สร้างใหม่ได้เสมอ)',
     seeds: 'Seed keywords (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'ชื่อ interest ส่วนใหญ่เป็นภาษาอังกฤษ ลองใส่คำอังกฤษเป็นหลัก',
     suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
@@ -207,11 +208,11 @@ const T = {
     eRate: 'เรียก API ถี่เกินไป รอสักครู่แล้วลองใหม่', eMeta: m => 'Meta แจ้งว่า: ' + m, eUnk: 'เกิดข้อผิดพลาด'
   },
   en: {
-    dl: 'Download HTML',
+    explorer: 'Open Graph API Explorer to copy your access token',
     sub: 'Explore interests that actually exist in Facebook Ads', token: 'Access token', tokenPh: 'Paste your token here',
     remember: 'Remember token in this browser', privacy: 'Your token stays in your browser and is only sent to Meta.',
     locale: 'Result language', market: 'Market', perSeed: 'Per seed', apiVer: 'API version', howTo: 'How to get a token',
-    h1: 'Open developers.facebook.com and go to Tools > Graph API Explorer', h2: 'Select the app you were invited to',
+    h1: 'Click "Open Graph API Explorer to copy your access token" above', h2: 'Select the app you were invited to',
     h3: 'Add the ads_read permission, then click Generate Access Token', h4: 'Copy the token and paste it here (it expires within a few hours; generate a new one any time)',
     seeds: 'Seed keywords (one per line)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'Most interest names are in English, so start with English keywords.',
     suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
@@ -403,12 +404,6 @@ function download(csv) {
   a.download = 'verified_interests_' + todayStr() + '.csv';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-function downloadHtml() {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([ORIGINAL_HTML], {type: 'text/html;charset=utf-8'}));
-  a.download = 'interest-explorer-v11.21.html';
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
 function md(list) {
   return '| Interest | ID | Audience | Category | Status |\n|---|---|---|---|---|\n' + list.map(r => '| ' + [r.name, r.id,
     sz(r).high == null ? '' : (r.th ? cc() + ' ' : 'global ') + fmt.format(sz(r).low ?? 0) + '–' + fmt.format(sz(r).high), r.path, r.status || ''].join(' | ') + ' |').join('\n');
@@ -458,7 +453,6 @@ function renderHist() {
     h.appendChild(b);
   }
 }
-$('#download-html').addEventListener('click', downloadHtml);
 $('#save').onclick = saveSelected;
 $('#copy').onclick = () => copyList(picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible());
 $('#scopy').onclick = () => copyList(Object.values(saved));
