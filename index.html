@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="9" width="1240" height="900">
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="11" width="1240" height="900">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -204,6 +204,7 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
 const $ = s => document.querySelector(s);
 const rows = new Map(), picked = new Set();
 let saved = {}, hist = [];
+let thOnly = false;
 try { saved = JSON.parse(localStorage.getItem('fbx_saved') || '{}'); hist = JSON.parse(localStorage.getItem('fbx_hist') || '[]'); } catch (e) {}
 const persist = () => { try { localStorage.setItem('fbx_saved', JSON.stringify(saved)); localStorage.setItem('fbx_hist', JSON.stringify(hist)); } catch (e) {} };
 const STATUS = ['untested', 'testing', 'winner', 'dropped'];
@@ -231,8 +232,9 @@ const T = {
     gender: 'เพศ', gAll: 'ทั้งหมด', gM: 'ชาย', gF: 'หญิง', mode: 'การจับคู่', mAny: 'ตรงข้อใดข้อหนึ่ง (OR)', mAll: 'ต้องตรงทุกข้อ (AND)',
     est: 'ประเมิน reach', needAct: 'ใส่ ad account ID ก่อน', estimating: 'กำลังประเมิน...', noEst: 'ไม่พบค่า reach ในผลลัพธ์ ข้อมูลดิบ:',
     estRes: (a, b, c) => 'ประมาณการ reach ใน ' + c + ': ' + a + ' – ' + b + ' คนต่อเดือน',
-    local: 'ดึงขนาดเฉพาะไทย', localing: (i, n, c) => 'กำลังดึงขนาดใน ' + c + ' ' + i + '/' + n, localDone: (n, c) => 'ได้ขนาดเฉพาะ ' + c + ' แล้ว ' + n + ' รายการ',
-    needLocal: 'รอดึงขนาดไทย (กดปุ่มดึงขนาดเฉพาะไทย)',
+    local: 'ดึงขนาดไทยแล้วแสดงเฉพาะไทย', showAll: 'แสดงทั้งหมด',
+    localing: (i, n, c) => 'กำลังดึงขนาดใน ' + c + ' ' + i + '/' + n, localDone: (n, c) => 'ได้ขนาดเฉพาะ ' + c + ' แล้ว ' + n + ' รายการ',
+    needLocal: 'รอดึงขนาดไทย (กดปุ่มดึงขนาดไทยแล้วแสดงเฉพาะไทย)',
     eNet: 'เชื่อมต่อ Meta ไม่ได้ ตรวจอินเทอร์เน็ตหรือปิดตัวบล็อกโฆษณาแล้วลองใหม่',
     e190: 'token หมดอายุหรือไม่ถูกต้อง สร้างใหม่ที่ Graph API Explorer',
     e10: 'token ไม่มีสิทธิ์ ads_read หรือบัญชีนี้ยังไม่ได้รับสิทธิ์ใน app',
@@ -270,8 +272,9 @@ const T = {
     gender: 'Gender', gAll: 'All', gM: 'Men', gF: 'Women', mode: 'Matching', mAny: 'Match any (OR)', mAll: 'Match all (AND)',
     est: 'Estimate reach', needAct: 'Enter an ad account ID first.', estimating: 'Estimating...', noEst: 'No reach value found. Raw data:',
     estRes: (a, b, c) => 'Estimated reach in ' + c + ': ' + a + ' to ' + b + ' monthly people',
-    local: 'Get Thailand-only size', localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' interests sized for ' + c,
-    needLocal: 'Waiting for Thailand size (use Get Thailand-only size)',
+    local: 'Get Thailand size & show Thailand only', showAll: 'Show all',
+    localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' interests sized for ' + c,
+    needLocal: 'Waiting for Thailand size (use Get Thailand size & show Thailand only)',
     eNet: 'Cannot reach Meta. Check your connection or disable ad blockers, then try again.',
     e190: 'Token expired or invalid. Generate a new one in Graph API Explorer.',
     e10: 'Token lacks ads_read permission, or this account has no role in the app.',
@@ -380,10 +383,12 @@ function cc() {
   if (!/^[a-z]{2}$/i.test(v)) v = 'TH';
   v = v.toUpperCase(); $('#country').value = v; return v;
 }
-function visible() {
+// ignoreTh = true ใช้เมื่อต้องการรายการทั้งหมดที่ผ่านการค้นหาและตัวกรองอื่น (ไม่สนโหมดแสดงเฉพาะไทย)
+function visible(ignoreTh = false) {
   const q = $('#q').value.trim().toLowerCase();
   const min = +$('#min').value || 0;
   const list = [...rows.values()].filter(r =>
+    (ignoreTh || !thOnly || !!r.th) &&
     (!q || (r.name + ' ' + r.path).toLowerCase().includes(q)) && (sz(r).high ?? 0) >= min);
   list.sort((a, b) => {
     const x = sortKey === 'high' ? sz(a).high : a[sortKey], y = sortKey === 'high' ? sz(b).high : b[sortKey];
@@ -461,14 +466,22 @@ function renderCompare() {
   tbl.appendChild(tb); box.appendChild(tbl);
 }
 
+// ปุ่มเดียว: ยังไม่อยู่ในโหมดไทย = ดึงขนาดไทยแล้วแสดงเฉพาะไทย / อยู่ในโหมดไทยแล้ว = กลับไปแสดงทั้งหมด
+function syncLocalBtn() {
+  const b = $('#local');
+  b.textContent = thOnly ? t('showAll') : t('local');
+  b.classList.toggle('primary', thOnly);
+  b.disabled = !rows.size || busy;
+}
+
 function counts(list) {
   $('#count').textContent = rows.size ? t('counts')(list.length, rows.size, picked.size) : '';
   $('#export').disabled = !rows.size;
   $('#save').disabled = !picked.size;
   $('#est').disabled = !picked.size;
   $('#bUse').textContent = t('using')(picked.size);
-  $('#local').disabled = !rows.size || busy;
   $('#all').checked = list.length > 0 && list.every(r => picked.has(r.id));
+  syncLocalBtn();
   renderCompare();
 }
 
@@ -665,9 +678,10 @@ async function estimate() {
 async function fetchLocal() {
   if (busy) return;
   const id = ready(); if (!id) { setStatus(t('needAct'), true); return; }
+  thOnly = true; // เข้าโหมดแสดงเฉพาะไทยทันที รายการจะขึ้นมาเรื่อย ๆ เมื่อดึงขนาดเสร็จ
   const code = cc();
-  const list = (picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible()).filter(r => !r.th);
-  if (!list.length) return;
+  const list = (picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible(true)).filter(r => !r.th);
+  if (!list.length) { setStatus(t('localDone')(0, code)); render(); return; }
   busy = true; $('#local').disabled = true;
   let n = 0;
   for (let i = 0; i < list.length; i++) {
@@ -685,10 +699,10 @@ async function fetchLocal() {
   }
   busy = false; setStatus(t('localDone')(n, code)); render();
 }
-$('#local').onclick = fetchLocal;
+$('#local').onclick = () => { if (thOnly) { thOnly = false; render(); } else fetchLocal(); };
 $('#est').onclick = estimate;
 $('#go').onclick = run;
-$('#clear').onclick = () => { rows.clear(); picked.clear(); setStatus(''); render(); };
+$('#clear').onclick = () => { rows.clear(); picked.clear(); thOnly = false; setStatus(''); render(); };
 $('#export').onclick = () => download(toCsv(picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible()));
 $('#q').oninput = $('#min').oninput = render;
 $('#all').onchange = e => { for (const r of visible()) e.target.checked ? picked.add(r.id) : picked.delete(r.id); render(); };
