@@ -1,0 +1,547 @@
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="5" width="1240" height="900"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ads Guru Audience</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f7;--surface:#fff;--ink:#1b2330;--muted:#5b6675;--accent:#0a6c74;--accent-ink:#fff;--line:#d6dce3;--bar:#9fd3d7;--err:#b3261e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171e;--surface:#1a212b;--ink:#e6eaf0;--muted:#93a0b0;--accent:#4fc3cc;--accent-ink:#0b1217;--line:#2b3440;--bar:#1f5f66;--err:#f2b8b5;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.55 "IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr);gap:24px;max-width:1240px;margin:0 auto;padding:24px}
+@media (max-width:860px){.app{grid-template-columns:1fr;padding:16px}}
+h1{font-size:20px;font-weight:600;margin:0 0 2px}
+.sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.top .tbtns{display:flex;gap:6px}
+.top button{padding:4px 10px;font-size:13px}
+aside,.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+label{display:block;font-weight:500;font-size:13px;margin:14px 0 4px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+textarea{min-height:120px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.check{display:flex;gap:8px;align-items:center;font-weight:400;margin:10px 0 0}
+.check input{width:auto}
+button{font:inherit;font-weight:500;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+details{margin-top:16px;font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--ink);font-weight:500}
+details ol{padding-left:18px;margin:8px 0 0}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.actions{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+#status{font-size:14px;color:var(--muted);flex:1;min-width:200px}
+#status.err{color:var(--err)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input{width:auto;flex:1;min-width:140px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:13px;white-space:nowrap}
+th button{all:unset;cursor:pointer;font-weight:600}
+th button:focus-visible{outline:2px solid var(--accent)}
+td.name b{font-weight:500}
+td.name small{display:block;color:var(--muted);font-size:12px}
+td.size{min-width:200px;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--bar);margin-top:4px}
+h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.chips button{padding:2px 10px;font-size:13px;border-radius:999px}
+#bres{white-space:pre-wrap;flex-basis:100%;font-size:14px}
+.badge{font-size:12px;color:var(--muted);margin-left:6px}
+td select,td input[type=text]{padding:4px 8px;font-size:13px}
+.empty{color:var(--muted);padding:24px 0;text-align:center}
+.count{font-size:13px;color:var(--muted);margin:0 0 8px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="top"><h1 id="app-title">Ads Guru Audience</h1>
+    <div class="tbtns">
+      <button id="download-html" type="button" data-i18n="dl"></button>
+      <button id="lang" type="button" aria-label="Language">EN</button>
+    </div>
+  </div>
+  <p class="sub" id="sub-text" data-i18n="sub"></p>
+
+  <label for="token" data-i18n="token"></label>
+  <input id="token" type="password" autocomplete="off" data-ph="tokenPh">
+  <label class="check"><input id="remember" type="checkbox"> <span data-i18n="remember"></span></label>
+  <p class="hint" id="privacy-hint" data-i18n="privacy"></p>
+
+  <div class="row">
+    <div><label for="locale" data-i18n="locale"></label>
+      <select id="locale"><option value="th_TH">ไทย</option><option value="en_US">English</option></select></div>
+    <div><label for="country" data-i18n="market"></label><input id="country" type="text" value="TH" maxlength="2" autocomplete="off"></div>
+  </div>
+  <div class="row">
+    <div><label for="tLow" data-i18n="tLow"></label><input id="tLow" type="number" min="0" value="0"></div>
+    <div><label for="tHigh" data-i18n="tHigh"></label><input id="tHigh" type="number" min="0" value="1000000000"></div>
+  </div>
+  <div class="row">
+    <div><label for="limit" data-i18n="perSeed"></label><input id="limit" type="number" min="1" max="100" value="100"></div>
+    <div><label for="ver" data-i18n="apiVer"></label><input id="ver" type="text" value="v27.0"></div>
+  </div>
+
+  <details>
+    <summary data-i18n="howTo"></summary>
+    <ol>
+      <li data-i18n="h1"></li>
+      <li data-i18n="h2"></li>
+      <li data-i18n="h3"></li>
+      <li data-i18n="h4"></li>
+    </ol>
+  </details>
+</aside>
+
+<main>
+  <section class="panel">
+    <label for="seeds" data-i18n="seeds"></label>
+    <textarea id="seeds"></textarea>
+    <p class="hint" id="seeds-hint" data-i18n="seedsHint"></p>
+    <div id="hist" class="chips"></div>
+    <label class="check"><input id="suggest" type="checkbox"> <span data-i18n="suggest"></span></label>
+    <div class="actions">
+      <button id="go" class="primary" data-i18n="go"></button>
+      <button id="clear" data-i18n="clear"></button>
+      <span id="status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="tools">
+      <input id="q" type="text" data-ph="filterPh" data-al="filterPh">
+      <input id="min" type="number" min="0" data-ph="minPh" data-al="minPh">
+      <button id="local" disabled="" data-i18n="local"></button>
+      <button id="save" disabled="" data-i18n="save"></button>
+      <button id="copy" data-i18n="copy"></button>
+      <button id="export" class="primary" disabled="" data-i18n="export"></button>
+    </div>
+    <p class="count" id="count"></p>
+    <div class="wrap">
+      <table>
+        <thead><tr>
+          <th><input type="checkbox" id="all" data-al="selAll"></th>
+          <th><button data-k="name" data-i18n="colName"></button></th>
+          <th><button data-k="high" data-i18n="colSize"></button></th>
+        </tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="empty"></p>
+  </section>
+
+  <section class="panel">
+    <h2 id="bT-title" data-i18n="bT"></h2>
+    <p class="hint" id="bHint" data-i18n="bHint"></p>
+    <p class="count" id="bUse"></p>
+    <div class="row">
+      <div><label for="act" data-i18n="act"></label><input id="act" type="text" placeholder="act_1234567890"></div>
+    </div>
+    <div class="row">
+      <div><label for="ageMin" data-i18n="ageMin"></label><input id="ageMin" type="number" min="13" max="65" value="18"></div>
+      <div><label for="ageMax" data-i18n="ageMax"></label><input id="ageMax" type="number" min="13" max="65" value="65"></div>
+      <div><label for="gender" data-i18n="gender"></label><select id="gender"><option value="" data-i18n="gAll"></option><option value="1" data-i18n="gM"></option><option value="2" data-i18n="gF"></option></select></div>
+      <div><label for="mode" data-i18n="mode"></label><select id="mode"><option value="or" data-i18n="mAny"></option><option value="and" data-i18n="mAll"></option></select></div>
+    </div>
+    <div class="actions">
+      <button id="est" disabled="" data-i18n="est"></button>
+      <span id="bres" role="status"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 id="savedT-title" data-i18n="savedT"></h2>
+    <p class="hint" id="savedHint" data-i18n="savedHint"></p>
+    <div class="wrap"><table><tbody id="sbody"></tbody></table></div>
+    <p class="empty" id="sempty"></p>
+    <div class="actions"><button id="scopy" data-i18n="copy"></button><button id="sexport" class="primary" data-i18n="export"></button></div>
+  </section>
+</main>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+// เก็บโค้ดต้นฉบับของหน้านี้ไว้ก่อนที่ข้อมูลจะถูกเติมลงในหน้า เพื่อใช้ทำไฟล์ดาวน์โหลด
+const ORIGINAL_HTML = '<!doctype html>\n' + document.documentElement.outerHTML;
+const rows = new Map(), picked = new Set();
+let saved = {}, hist = [];
+try { saved = JSON.parse(localStorage.getItem('fbx_saved') || '{}'); hist = JSON.parse(localStorage.getItem('fbx_hist') || '[]'); } catch (e) {}
+const persist = () => { try { localStorage.setItem('fbx_saved', JSON.stringify(saved)); localStorage.setItem('fbx_hist', JSON.stringify(hist)); } catch (e) {} };
+const STATUS = ['untested', 'testing', 'winner', 'dropped'];
+const T = {
+  th: {
+    dl: 'ดาวน์โหลดไฟล์ HTML',
+    sub: 'ค้น interest ที่มีอยู่จริงใน Facebook Ads', token: 'Access token', tokenPh: 'วาง token ที่นี่',
+    remember: 'จำ token ในเบราว์เซอร์นี้', privacy: 'token เก็บและใช้ในเครื่องคุณเท่านั้น ไม่ส่งไปที่อื่นนอกจาก Meta',
+    locale: 'ภาษาผลลัพธ์', market: 'ตลาด', perSeed: 'ต่อคำ', apiVer: 'API version', howTo: 'วิธีสร้าง token',
+    h1: 'เปิด developers.facebook.com แล้วไปที่ Tools > Graph API Explorer', h2: 'เลือก app ที่ได้รับเชิญ',
+    h3: 'เพิ่มสิทธิ์ ads_read แล้วกด Generate Access Token', h4: 'คัดลอก token มาวาง (หมดอายุภายในไม่กี่ชั่วโมง สร้างใหม่ได้เสมอ)',
+    seeds: 'Seed keywords (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'ชื่อ interest ส่วนใหญ่เป็นภาษาอังกฤษ ลองใส่คำอังกฤษเป็นหลัก',
+    suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
+    export: 'Export CSV', colName: 'Interest', colSize: 'ขนาด audience', selAll: 'เลือกทั้งหมดที่แสดง',
+    empty0: 'ยังไม่มีผลลัพธ์ ใส่ keyword แล้วกดค้นหา', emptyF: 'ไม่มีรายการที่ตรงกับตัวกรอง', noCat: 'ไม่มีข้อมูลหมวด', noData: 'ไม่มีข้อมูล', pick: 'เลือก ',
+    needToken: 'วาง access token ก่อน', needSeed: 'ใส่ keyword อย่างน้อย 1 คำ',
+    searching: (i, n, k) => 'กำลังค้น ' + i + '/' + n + ': ' + k, done: n => 'เสร็จแล้ว มี ' + n + ' interest',
+    counts: (a, b, c) => 'แสดง ' + a + ' จาก ' + b + ' · เลือกแล้ว ' + c,
+    tLow: 'เล็กถ้าน้อยกว่า', tHigh: 'ใหญ่ถ้ามากกว่า', small: 'เล็ก', ok: 'พอดี', large: 'ใหญ่', save: 'บันทึกที่เลือก', copy: 'Copy for Claude',
+    savedT: 'รายการที่บันทึกไว้', savedHint: 'เก็บในเบราว์เซอร์นี้ ตั้งสถานะและโน้ตได้', sempty: 'ยังไม่มีรายการที่บันทึก ติ๊กเลือกแล้วกดบันทึกที่เลือก',
+    saved: n => 'บันทึก ' + n + ' รายการแล้ว', copied: n => 'คัดลอก ' + n + ' รายการแล้ว วางในแชท Claude ได้เลย', copyFail: 'คัดลอกไม่สำเร็จ ลองใช้ Export CSV แทน',
+    recent: 'ค้นล่าสุด:', memoPh: 'โน้ต', remove: 'ลบ',
+    bT: 'ประเมิน reach ของ interest ที่เลือก (เฉพาะตลาดที่เลือก)', bHint: 'ใช้ interest ที่ติ๊กเลือกในตารางด้านบน ตลาดใช้ค่าในช่อง "ตลาด" ที่แถบซ้าย',
+    using: n => 'ใช้ interest ที่เลือก ' + n + ' รายการ', act: 'Ad account ID', ageMin: 'อายุต่ำสุด', ageMax: 'อายุสูงสุด (65 = 65+)',
+    gender: 'เพศ', gAll: 'ทั้งหมด', gM: 'ชาย', gF: 'หญิง', mode: 'การจับคู่', mAny: 'ตรงข้อใดข้อหนึ่ง (OR)', mAll: 'ต้องตรงทุกข้อ (AND)',
+    est: 'ประเมิน reach', needAct: 'ใส่ ad account ID ก่อน', estimating: 'กำลังประเมิน...', noEst: 'ไม่พบค่า reach ในผลลัพธ์ ข้อมูลดิบ:',
+    estRes: (a, b, c) => 'ประมาณการ reach ใน ' + c + ': ' + a + ' – ' + b + ' คนต่อเดือน',
+    local: 'ดึงขนาดเฉพาะตลาด', localing: (i, n, c) => 'กำลังดึงขนาดใน ' + c + ' ' + i + '/' + n, localDone: (n, c) => 'ได้ขนาดเฉพาะ ' + c + ' แล้ว ' + n + ' รายการ', globalTag: 'ทั่วโลก',
+    eNet: 'เชื่อมต่อ Meta ไม่ได้ ตรวจอินเทอร์เน็ตหรือปิดตัวบล็อกโฆษณาแล้วลองใหม่',
+    e190: 'token หมดอายุหรือไม่ถูกต้อง สร้างใหม่ที่ Graph API Explorer',
+    e10: 'token ไม่มีสิทธิ์ ads_read หรือบัญชีนี้ยังไม่ได้รับสิทธิ์ใน app',
+    eRate: 'เรียก API ถี่เกินไป รอสักครู่แล้วลองใหม่', eMeta: m => 'Meta แจ้งว่า: ' + m, eUnk: 'เกิดข้อผิดพลาด'
+  },
+  en: {
+    dl: 'Download HTML',
+    sub: 'Explore interests that actually exist in Facebook Ads', token: 'Access token', tokenPh: 'Paste your token here',
+    remember: 'Remember token in this browser', privacy: 'Your token stays in your browser and is only sent to Meta.',
+    locale: 'Result language', market: 'Market', perSeed: 'Per seed', apiVer: 'API version', howTo: 'How to get a token',
+    h1: 'Open developers.facebook.com and go to Tools > Graph API Explorer', h2: 'Select the app you were invited to',
+    h3: 'Add the ads_read permission, then click Generate Access Token', h4: 'Copy the token and paste it here (it expires within a few hours; generate a new one any time)',
+    seeds: 'Seed keywords (one per line)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'Most interest names are in English, so start with English keywords.',
+    suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
+    export: 'Export CSV', colName: 'Interest', colSize: 'Audience size', selAll: 'Select all shown',
+    empty0: 'No results yet. Add keywords and click Search.', emptyF: 'No interests match the filters.', noCat: 'No category data', noData: 'No data', pick: 'Select ',
+    needToken: 'Paste your access token first.', needSeed: 'Add at least one keyword.',
+    searching: (i, n, k) => 'Searching ' + i + '/' + n + ': ' + k, done: n => 'Done. ' + n + ' interests found.',
+    counts: (a, b, c) => 'Showing ' + a + ' of ' + b + ' · ' + c + ' selected',
+    tLow: 'Small below', tHigh: 'Large above', small: 'small', ok: 'fits', large: 'large', save: 'Save selected', copy: 'Copy for Claude',
+    savedT: 'Saved interests', savedHint: 'Stored in this browser. Set a status and notes.', sempty: 'Nothing saved yet. Tick interests and click Save selected.',
+    saved: n => n + ' saved', copied: n => n + ' copied. Paste into your Claude chat.', copyFail: 'Copy failed. Try Export CSV instead.',
+    recent: 'Recent:', memoPh: 'Note', remove: 'Remove',
+    bT: 'Estimate reach for selected interests (selected market only)', bHint: 'Uses the interests ticked in the table above. The market comes from the Market field in the sidebar.',
+    using: n => n + ' selected interests will be used', act: 'Ad account ID', ageMin: 'Min age', ageMax: 'Max age (65 = 65+)',
+    gender: 'Gender', gAll: 'All', gM: 'Men', gF: 'Women', mode: 'Matching', mAny: 'Match any (OR)', mAll: 'Match all (AND)',
+    est: 'Estimate reach', needAct: 'Enter an ad account ID first.', estimating: 'Estimating...', noEst: 'No reach value found. Raw data:',
+    estRes: (a, b, c) => 'Estimated reach in ' + c + ': ' + a + ' to ' + b + ' monthly people',
+    local: 'Get market-only size', localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' interests sized for ' + c, globalTag: 'global',
+    eNet: 'Cannot reach Meta. Check your connection or disable ad blockers, then try again.',
+    e190: 'Token expired or invalid. Generate a new one in Graph API Explorer.',
+    e10: 'Token lacks ads_read permission, or this account has no role in the app.',
+    eRate: 'Too many requests. Wait a moment and try again.', eMeta: m => 'Meta says: ' + m, eUnk: 'Something went wrong'
+  }
+};
+let lang = 'en';
+lang = (navigator.language || '').toLowerCase().startsWith('th') ? 'th' : 'en';
+try { const sl = localStorage.getItem('fbx_lang'); if (sl) lang = sl; } catch (e) {}
+const t = k => T[lang][k];
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-ph]').forEach(el => el.placeholder = t(el.dataset.ph));
+  document.querySelectorAll('[data-al]').forEach(el => el.setAttribute('aria-label', t(el.dataset.al)));
+  $('#seeds').placeholder = t('seedsPh');
+  $('#lang').textContent = lang === 'th' ? 'EN' : 'ไทย';
+  renderSaved(); renderHist();
+  render();
+}
+
+let sortKey = 'high', sortDir = -1, token = '', busy = false;
+const fmt = new Intl.NumberFormat('en', {notation: 'compact', maximumFractionDigits: 1});
+
+try {
+  const tk = localStorage.getItem('fbx_token');
+  if (tk) { $('#token').value = tk; $('#remember').checked = true; }
+} catch (e) {}
+
+function setStatus(msg, err) { const s = $('#status'); s.textContent = msg; s.className = err ? 'err' : ''; }
+
+async function api(params) {
+  const ver = $('#ver').value.trim() || 'v27.0';
+  const url = new URL('https://graph.facebook.com/' + ver + '/search');
+  Object.entries({...params, access_token: token}).forEach(([k, v]) => url.searchParams.set(k, v));
+  let res;
+  try { res = await fetch(url); }
+  catch (e) { throw new Error(t('eNet')); }
+  const j = await res.json().catch(() => ({}));
+  if (j.error) {
+    const c = j.error.code;
+    if (c === 190) throw new Error(t('e190'));
+    if (c === 10 || c === 200 || c === 3) throw new Error(t('e10'));
+    if ([4, 17, 32, 613].includes(c)) throw new Error(t('eRate'));
+    throw new Error(t('eMeta')(j.error.message || t('eUnk')));
+  }
+  return j.data || [];
+}
+
+function add(data, note) {
+  for (const d of data) {
+    if (!d.id || rows.has(d.id)) continue;
+    rows.set(d.id, {
+      id: d.id, name: d.name || '',
+      low: d.audience_size_lower_bound ?? null,
+      high: d.audience_size_upper_bound ?? null,
+      path: (d.path || []).join(' > '), note
+    });
+  }
+}
+
+async function run() {
+  if (busy) return;
+  token = $('#token').value.trim();
+  if (!token) return setStatus(t('needToken'), true);
+  try {
+    if ($('#remember').checked) localStorage.setItem('fbx_token', token);
+    else localStorage.removeItem('fbx_token');
+  } catch (e) {}
+  const seeds = $('#seeds').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!seeds.length) return setStatus(t('needSeed'), true);
+  hist = [...seeds, ...hist.filter(h => !seeds.includes(h))].slice(0, 30); persist(); renderHist();
+  const limit = Math.min(100, Math.max(1, +$('#limit').value || 100));
+  const locale = $('#locale').value;
+  busy = true; $('#go').disabled = true;
+  try {
+    for (let i = 0; i < seeds.length; i++) {
+      const kw = seeds[i];
+      setStatus(t('searching')(i + 1, seeds.length, kw));
+      const data = await api({type: 'adinterest', q: kw, limit, locale});
+      add(data, 'seed: ' + kw);
+      if ($('#suggest').checked && data.length) {
+        const names = data.slice(0, 5).map(d => d.name);
+        const sug = await api({type: 'adinterestsuggestion', interest_list: JSON.stringify(names), limit, locale});
+        add(sug, 'suggested from: ' + kw);
+      }
+      render();
+      await new Promise(r => setTimeout(r, 400));
+    }
+    setStatus(t('done')(rows.size));
+  } catch (e) { setStatus(e.message, true); }
+  busy = false; $('#go').disabled = false;
+}
+
+const sz = r => r.th || {low: r.low, high: r.high};
+function cc() {
+  let v = $('#country').value.trim();
+  if (!/^[a-z]{2}$/i.test(v)) v = 'TH';
+  v = v.toUpperCase(); $('#country').value = v; return v;
+}
+function visible() {
+  const q = $('#q').value.trim().toLowerCase();
+  const min = +$('#min').value || 0;
+  const list = [...rows.values()].filter(r =>
+    (!q || (r.name + ' ' + r.path).toLowerCase().includes(q)) && (sz(r).low ?? sz(r).high ?? 0) >= min);
+  list.sort((a, b) => {
+    const x = sortKey === 'high' ? sz(a).high : a[sortKey], y = sortKey === 'high' ? sz(b).high : b[sortKey];
+    if (sortKey === 'name') return sortDir * String(x).localeCompare(String(y));
+    return sortDir * ((x ?? -1) - (y ?? -1));
+  });
+  return list;
+}
+
+function render() {
+  const list = visible(), body = $('#body');
+  body.textContent = '';
+  for (const r of list) {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td'), cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = picked.has(r.id); cb.setAttribute('aria-label', t('pick') + r.name);
+    cb.onchange = () => { cb.checked ? picked.add(r.id) : picked.delete(r.id); counts(visible()); };
+    c1.appendChild(cb);
+    const c2 = document.createElement('td'); c2.className = 'name';
+    const b = document.createElement('b'); b.textContent = r.name;
+    const sm = document.createElement('small'); sm.textContent = r.path || t('noCat');
+    c2.append(b, sm);
+    const c3 = document.createElement('td'); c3.className = 'size';
+    const z = sz(r), txt = document.createElement('span');
+    txt.textContent = (r.th ? cc() + ': ' : '') + (z.high == null ? t('noData') : fmt.format(z.low ?? 0) + ' – ' + fmt.format(z.high));
+    if (z.high != null) {
+      const lo = +$('#tLow').value || 0, hi = +$('#tHigh').value || Infinity, bd = document.createElement('span');
+      bd.className = 'badge'; bd.textContent = z.high < lo ? t('small') : z.high > hi ? t('large') : t('ok');
+      if (!r.th) bd.textContent += ' · ' + t('globalTag');
+      txt.append(bd);
+    }
+    c3.appendChild(txt);
+    if (z.high) {
+      const bar = document.createElement('div'); bar.className = 'bar';
+      bar.style.width = Math.max(2, Math.min(100, (Math.log10(z.high) - 3) / 6 * 100)) + '%';
+      c3.appendChild(bar);
+    }
+    tr.append(c1, c2, c3); body.appendChild(tr);
+  }
+  $('#empty').style.display = list.length ? 'none' : 'block';
+  $('#empty').textContent = rows.size ? t('emptyF') : t('empty0');
+  counts(list);
+}
+
+function counts(list) {
+  $('#count').textContent = rows.size ? t('counts')(list.length, rows.size, picked.size) : '';
+  $('#export').disabled = !rows.size;
+  $('#save').disabled = !picked.size;
+  $('#est').disabled = !picked.size;
+  $('#bUse').textContent = t('using')(picked.size);
+  $('#local').disabled = !rows.size || busy;
+  $('#all').checked = list.length > 0 && list.every(r => picked.has(r.id));
+}
+
+function csvCell(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+function toCsv(list) {
+  const head = ['interest_name', 'interest_id', 'audience_size_low', 'audience_size_high', 'category_path', 'date_checked', 'country', 'notes', 'status'];
+  const country = cc();
+  return [head.join(',')].concat(list.map(r => [r.name, r.id, sz(r).low, sz(r).high, r.path, r.date || todayStr(), country,
+    [r.note, r.th ? '' : 'global size', r.memo].filter(Boolean).join(' | '), r.status || 'untested'].map(csvCell).join(','))).join('\r\n');
+}
+function download(csv) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'}));
+  a.download = 'verified_interests_' + todayStr() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function downloadHtml() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ORIGINAL_HTML], {type: 'text/html;charset=utf-8'}));
+  a.download = 'interest-explorer-v11.21.html';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function md(list) {
+  return '| Interest | ID | Audience | Category | Status |\n|---|---|---|---|---|\n' + list.map(r => '| ' + [r.name, r.id,
+    sz(r).high == null ? '' : (r.th ? cc() + ' ' : 'global ') + fmt.format(sz(r).low ?? 0) + '–' + fmt.format(sz(r).high), r.path, r.status || ''].join(' | ') + ' |').join('\n');
+}
+async function copyList(list) {
+  if (!list.length) return;
+  try { await navigator.clipboard.writeText(md(list)); setStatus(t('copied')(list.length)); }
+  catch (e) { setStatus(t('copyFail'), true); }
+}
+function saveSelected() {
+  const src = [...rows.values()].filter(r => picked.has(r.id));
+  src.forEach(r => { if (!saved[r.id]) saved[r.id] = {...r, status: 'untested', memo: '', date: todayStr()}; });
+  persist(); renderSaved(); setStatus(t('saved')(src.length));
+}
+function renderSaved() {
+  const b = $('#sbody'), list = Object.values(saved);
+  b.textContent = '';
+  for (const r of list) {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td'); c1.className = 'name';
+    const n = document.createElement('b'); n.textContent = r.name;
+    const sm = document.createElement('small'); sm.textContent = (sz(r).high == null ? '' : (r.th ? cc() + ' ' : '') + fmt.format(sz(r).low ?? 0) + ' – ' + fmt.format(sz(r).high) + ' · ') + (r.path || '');
+    c1.append(n, sm);
+    const c2 = document.createElement('td'), sel = document.createElement('select');
+    STATUS.forEach(x => { const o = document.createElement('option'); o.value = o.textContent = x; sel.appendChild(o); });
+    sel.value = r.status; sel.onchange = () => { r.status = sel.value; persist(); };
+    c2.appendChild(sel);
+    const c3 = document.createElement('td'), inp = document.createElement('input');
+    inp.type = 'text'; inp.value = r.memo || ''; inp.placeholder = t('memoPh'); inp.setAttribute('aria-label', t('memoPh'));
+    inp.onchange = () => { r.memo = inp.value; persist(); };
+    c3.appendChild(inp);
+    const c4 = document.createElement('td'), del = document.createElement('button');
+    del.textContent = t('remove'); del.onclick = () => { delete saved[r.id]; persist(); renderSaved(); };
+    c4.appendChild(del);
+    tr.append(c1, c2, c3, c4); b.appendChild(tr);
+  }
+  $('#sempty').textContent = t('sempty'); $('#sempty').style.display = list.length ? 'none' : 'block';
+  $('#sexport').disabled = $('#scopy').disabled = !list.length;
+}
+function renderHist() {
+  const h = $('#hist'); h.textContent = '';
+  if (!hist.length) return;
+  const lab = document.createElement('span'); lab.className = 'hint'; lab.textContent = t('recent'); h.appendChild(lab);
+  for (const k of hist) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = k;
+    b.onclick = () => { const ta = $('#seeds'), cur = ta.value.split('\n').map(x => x.trim()); if (!cur.includes(k)) ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + k; };
+    h.appendChild(b);
+  }
+}
+$('#download-html').addEventListener('click', downloadHtml);
+$('#save').onclick = saveSelected;
+$('#copy').onclick = () => copyList(picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible());
+$('#scopy').onclick = () => copyList(Object.values(saved));
+$('#sexport').onclick = () => download(toCsv(Object.values(saved)));
+$('#tLow').oninput = $('#tHigh').oninput = render;
+try { $('#act').value = localStorage.getItem('fbx_act') || ''; } catch (e) {}
+$('#act').oninput = () => { try { localStorage.setItem('fbx_act', $('#act').value); } catch (e) {} };
+const bmsg = (m, err) => { const b = $('#bres'); b.textContent = m; b.style.color = err ? 'var(--err)' : 'var(--muted)'; };
+function actId() { const v = $('#act').value.trim().replace(/^act_/, ''); return v ? 'act_' + v : ''; }
+function spec() {
+  const ints = [...rows.values()].filter(r => picked.has(r.id)).map(r => ({id: r.id, name: r.name}));
+  const sp = {geo_locations: {countries: [cc()]}, age_min: +$('#ageMin').value || 18, age_max: +$('#ageMax').value || 65};
+  if ($('#gender').value) sp.genders = [+$('#gender').value];
+  sp.flexible_spec = $('#mode').value === 'and' ? ints.map(i => ({interests: [i]})) : [{interests: ints}];
+  return sp;
+}
+async function graph(path, params, post) {
+  const url = 'https://graph.facebook.com/' + ($('#ver').value.trim() || 'v27.0') + '/' + path;
+  const body = new URLSearchParams({...params, access_token: token});
+  let res;
+  try { res = post ? await fetch(url, {method: 'POST', body}) : await fetch(url + '?' + body); }
+  catch (e) { throw new Error(t('eNet')); }
+  const j = await res.json().catch(() => ({}));
+  if (j.error) {
+    const c = j.error.code;
+    throw new Error(c === 190 ? t('e190') : (c === 10 || c === 200) ? t('e10') : t('eMeta')(j.error.message || t('eUnk')));
+  }
+  return j;
+}
+function ready() {
+  token = $('#token').value.trim();
+  if (!token) { bmsg(t('needToken'), true); return ''; }
+  const id = actId();
+  if (!id) bmsg(t('needAct'), true);
+  return id;
+}
+async function estimate() {
+  const id = ready(); if (!id) return;
+  bmsg(t('estimating'));
+  try {
+    const j = await graph(id + '/delivery_estimate', {targeting_spec: JSON.stringify(spec()), optimization_goal: 'REACH'});
+    const d = (j.data || [])[0] || {};
+    const lo = d.estimate_mau_lower_bound ?? d.users_lower_bound, hi = d.estimate_mau_upper_bound ?? d.users_upper_bound;
+    bmsg(lo == null ? t('noEst') + ' ' + JSON.stringify(d) : t('estRes')(fmt.format(lo), fmt.format(hi ?? lo), spec().geo_locations.countries[0]));
+  } catch (e) { bmsg(e.message, true); }
+}
+async function fetchLocal() {
+  if (busy) return;
+  const id = ready(); if (!id) { setStatus(t('needAct'), true); return; }
+  const code = cc();
+  const list = (picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible()).filter(r => !r.th);
+  if (!list.length) return;
+  busy = true; $('#local').disabled = true;
+  let n = 0;
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    setStatus(t('localing')(i + 1, list.length, code));
+    const sp = {geo_locations: {countries: [code]}, age_min: +$('#ageMin').value || 18, age_max: +$('#ageMax').value || 65, flexible_spec: [{interests: [{id: r.id, name: r.name}]}]};
+    if ($('#gender').value) sp.genders = [+$('#gender').value];
+    try {
+      const j = await graph(id + '/delivery_estimate', {targeting_spec: JSON.stringify(sp), optimization_goal: 'REACH'});
+      const d = (j.data || [])[0] || {};
+      const lo = d.estimate_mau_lower_bound ?? d.users_lower_bound, hi = d.estimate_mau_upper_bound ?? d.users_upper_bound;
+      if (lo != null) { r.th = {low: lo, high: hi ?? lo}; n++; render(); }
+    } catch (e) { setStatus(e.message, true); busy = false; render(); return; }
+    await new Promise(x => setTimeout(x, 700));
+  }
+  busy = false; setStatus(t('localDone')(n, code)); render();
+}
+$('#local').onclick = fetchLocal;
+$('#est').onclick = estimate;
+$('#go').onclick = run;
+$('#clear').onclick = () => { rows.clear(); picked.clear(); setStatus(''); render(); };
+$('#export').onclick = () => download(toCsv(picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible()));
+$('#q').oninput = $('#min').oninput = render;
+$('#all').onchange = e => { for (const r of visible()) e.target.checked ? picked.add(r.id) : picked.delete(r.id); render(); };
+document.querySelectorAll('th button').forEach(b => b.onclick = () => {
+  const k = b.dataset.k;
+  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'name' ? 1 : -1; }
+  render();
+});
+$('#lang').onclick = () => { lang = lang === 'th' ? 'en' : 'th'; try { localStorage.setItem('fbx_lang', lang); } catch (e) {} applyLang(); };
+applyLang();
+</script>
+
+</body></html>
