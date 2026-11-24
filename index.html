@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="7" width="1240" height="900"><head>
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="8" width="1240" height="900"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ads Guru Audience</title>
@@ -61,6 +61,8 @@ h2{font-size:16px;font-weight:600;margin:0 0 4px}
 td select,td input[type=text]{padding:4px 8px;font-size:13px}
 .empty{color:var(--muted);padding:24px 0;text-align:center}
 .count{font-size:13px;color:var(--muted);margin:0 0 8px}
+.warn{color:var(--err);font-weight:500}
+.ok{color:var(--accent);font-weight:500}
 </style>
 </head>
 <body>
@@ -125,6 +127,7 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
       <button id="local" disabled="" data-i18n="local"></button>
       <button id="save" disabled="" data-i18n="save"></button>
       <button id="copy" data-i18n="copy"></button>
+      <button id="copyNames" data-i18n="copyNames"></button>
       <button id="export" class="primary" disabled="" data-i18n="export"></button>
     </div>
     <p class="count" id="count"></p>
@@ -139,6 +142,26 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
       </table>
     </div>
     <p class="empty" id="empty"></p>
+  </section>
+
+  <section class="panel">
+    <h2 id="cmpT-title" data-i18n="cmpTitle"></h2>
+    <p class="hint" data-i18n="cmpHint"></p>
+    <div id="cmp" class="wrap"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="presetT-title" data-i18n="presetTitle"></h2>
+    <p class="hint" data-i18n="presetHint"></p>
+    <div class="row">
+      <div><label for="presetSel" data-i18n="presetPick"></label><select id="presetSel"></select></div>
+      <div><label for="presetName" data-i18n="presetName"></label><input id="presetName" type="text"></div>
+    </div>
+    <div class="actions">
+      <button id="presetLoad" data-i18n="presetLoad"></button>
+      <button id="presetSave" class="primary" data-i18n="presetSave"></button>
+      <button id="presetDel" data-i18n="presetDel"></button>
+    </div>
   </section>
 
   <section class="panel">
@@ -165,7 +188,12 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
     <p class="hint" id="savedHint" data-i18n="savedHint"></p>
     <div class="wrap"><table><tbody id="sbody"></tbody></table></div>
     <p class="empty" id="sempty"></p>
-    <div class="actions"><button id="scopy" data-i18n="copy"></button><button id="sexport" class="primary" data-i18n="export"></button></div>
+    <div class="actions">
+      <button id="scopy" data-i18n="copy"></button>
+      <button id="importBtn" data-i18n="importCsv"></button>
+      <button id="sexport" class="primary" data-i18n="export"></button>
+      <input id="importFile" type="file" accept=".csv,text/csv" hidden="">
+    </div>
   </section>
 </main>
 </div>
@@ -205,7 +233,16 @@ const T = {
     eNet: 'เชื่อมต่อ Meta ไม่ได้ ตรวจอินเทอร์เน็ตหรือปิดตัวบล็อกโฆษณาแล้วลองใหม่',
     e190: 'token หมดอายุหรือไม่ถูกต้อง สร้างใหม่ที่ Graph API Explorer',
     e10: 'token ไม่มีสิทธิ์ ads_read หรือบัญชีนี้ยังไม่ได้รับสิทธิ์ใน app',
-    eRate: 'เรียก API ถี่เกินไป รอสักครู่แล้วลองใหม่', eMeta: m => 'Meta แจ้งว่า: ' + m, eUnk: 'เกิดข้อผิดพลาด'
+    eRate: 'เรียก API ถี่เกินไป รอสักครู่แล้วลองใหม่', eMeta: m => 'Meta แจ้งว่า: ' + m, eUnk: 'เกิดข้อผิดพลาด',
+    cmpTitle: 'เทียบ interest ที่เลือก', cmpHint: 'แสดงเฉพาะรายการที่ติ๊กเลือก ป้ายเตือนอ้างอิงจากค่า "เล็กถ้าน้อยกว่า" และ "ใหญ่ถ้ามากกว่า"',
+    cmpEmpty: 'ติ๊กเลือก interest ในตารางด้านบนเพื่อเทียบ', colCat: 'หมวด', colWarn: 'สถานะขนาด',
+    warnSmall: 'เล็กเกินไป', warnLarge: 'กว้างเกินไป', warnOk: 'พอดี', warnNoData: 'ไม่มีข้อมูลขนาด',
+    copyNames: 'คัดลอกชื่อ (สำหรับ Ads Manager)', namesCopied: n => 'คัดลอกชื่อ ' + n + ' รายการแล้ว วางในช่องค้นหาของ Ads Manager ได้เลย',
+    importCsv: 'นำเข้า CSV', importDone: n => 'นำเข้าแล้ว ' + n + ' รายการ (ข้ามรายการที่มีอยู่แล้ว)', importFail: 'อ่านไฟล์ไม่สำเร็จ ตรวจว่าเป็นไฟล์ CSV ที่ส่งออกจากเครื่องมือนี้',
+    presetTitle: 'ค่าตั้งต้น (preset)', presetHint: 'บันทึกอายุ เพศ การจับคู่ ตลาด และช่วงขนาด เพื่อเรียกใช้ซ้ำ',
+    presetPick: 'เลือก preset', presetName: 'ชื่อ preset ที่จะบันทึก', presetNone: '— ไม่เลือก —',
+    presetLoad: 'เรียกใช้', presetSave: 'บันทึก preset', presetDel: 'ลบ preset',
+    presetNeedName: 'ใส่ชื่อ preset ก่อนบันทึก', presetSaved: n => 'บันทึก preset "' + n + '" แล้ว', presetLoaded: n => 'เรียกใช้ preset "' + n + '" แล้ว', presetDeleted: n => 'ลบ preset "' + n + '" แล้ว'
   },
   en: {
     explorer: 'Open Graph API Explorer to copy your access token',
@@ -234,7 +271,16 @@ const T = {
     eNet: 'Cannot reach Meta. Check your connection or disable ad blockers, then try again.',
     e190: 'Token expired or invalid. Generate a new one in Graph API Explorer.',
     e10: 'Token lacks ads_read permission, or this account has no role in the app.',
-    eRate: 'Too many requests. Wait a moment and try again.', eMeta: m => 'Meta says: ' + m, eUnk: 'Something went wrong'
+    eRate: 'Too many requests. Wait a moment and try again.', eMeta: m => 'Meta says: ' + m, eUnk: 'Something went wrong',
+    cmpTitle: 'Compare selected interests', cmpHint: 'Shows only ticked interests. Warnings use the "Small below" and "Large above" values.',
+    cmpEmpty: 'Tick interests in the table above to compare them', colCat: 'Category', colWarn: 'Size check',
+    warnSmall: 'Too small', warnLarge: 'Too broad', warnOk: 'Fits', warnNoData: 'No size data',
+    copyNames: 'Copy names (for Ads Manager)', namesCopied: n => n + ' names copied. Paste them into the Ads Manager search box.',
+    importCsv: 'Import CSV', importDone: n => 'Imported ' + n + ' interests (existing ones were skipped)', importFail: 'Could not read the file. Make sure it is a CSV exported from this tool.',
+    presetTitle: 'Presets', presetHint: 'Save age, gender, matching, market and size range to reuse later.',
+    presetPick: 'Choose a preset', presetName: 'Preset name to save', presetNone: '— none —',
+    presetLoad: 'Apply', presetSave: 'Save preset', presetDel: 'Delete preset',
+    presetNeedName: 'Enter a preset name first', presetSaved: n => 'Saved preset "' + n + '"', presetLoaded: n => 'Applied preset "' + n + '"', presetDeleted: n => 'Deleted preset "' + n + '"'
   }
 };
 let lang = 'en';
@@ -248,7 +294,7 @@ function applyLang() {
   document.querySelectorAll('[data-al]').forEach(el => el.setAttribute('aria-label', t(el.dataset.al)));
   $('#seeds').placeholder = t('seedsPh');
   $('#lang').textContent = lang === 'th' ? 'EN' : 'ไทย';
-  renderSaved(); renderHist();
+  renderSaved(); renderHist(); renderPresets();
   render();
 }
 
@@ -344,6 +390,14 @@ function visible() {
   return list;
 }
 
+function warnText(z) {
+  if (z.high == null) return t('warnNoData');
+  const lo = +$('#tLow').value || 0, hi = +$('#tHigh').value || Infinity;
+  if (z.high < lo) return t('warnSmall');
+  if (z.high > hi) return t('warnLarge');
+  return t('warnOk');
+}
+
 function render() {
   const list = visible(), body = $('#body');
   body.textContent = '';
@@ -379,6 +433,31 @@ function render() {
   counts(list);
 }
 
+function renderCompare() {
+  const box = $('#cmp'); box.textContent = '';
+  const list = [...rows.values()].filter(r => picked.has(r.id));
+  if (!list.length) {
+    const p = document.createElement('p'); p.className = 'empty'; p.textContent = t('cmpEmpty'); box.appendChild(p); return;
+  }
+  const tbl = document.createElement('table');
+  const thead = document.createElement('thead'), hr = document.createElement('tr');
+  [t('colName'), t('colSize'), t('colCat'), t('colWarn')].forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); });
+  thead.appendChild(hr); tbl.appendChild(thead);
+  const tb = document.createElement('tbody');
+  for (const r of list) {
+    const z = sz(r), tr = document.createElement('tr');
+    const c1 = document.createElement('td'); c1.textContent = r.name;
+    const c2 = document.createElement('td');
+    c2.textContent = z.high == null ? t('noData') : fmt.format(z.low ?? 0) + ' – ' + fmt.format(z.high);
+    const c3 = document.createElement('td'); c3.textContent = r.path || t('noCat');
+    const c4 = document.createElement('td'), w = warnText(z);
+    c4.textContent = w;
+    c4.className = (w === t('warnSmall') || w === t('warnLarge')) ? 'warn' : (w === t('warnOk') ? 'ok' : '');
+    tr.append(c1, c2, c3, c4); tb.appendChild(tr);
+  }
+  tbl.appendChild(tb); box.appendChild(tbl);
+}
+
 function counts(list) {
   $('#count').textContent = rows.size ? t('counts')(list.length, rows.size, picked.size) : '';
   $('#export').disabled = !rows.size;
@@ -387,6 +466,7 @@ function counts(list) {
   $('#bUse').textContent = t('using')(picked.size);
   $('#local').disabled = !rows.size || busy;
   $('#all').checked = list.length > 0 && list.every(r => picked.has(r.id));
+  renderCompare();
 }
 
 function csvCell(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
@@ -404,6 +484,48 @@ function download(csv) {
   a.download = 'verified_interests_' + todayStr() + '.csv';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+function parseCsv(text) {
+  const out = []; let row = [], field = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); out.push(row); row = []; field = ''; }
+    else if (c !== '\r') field += c;
+  }
+  if (field || row.length) { row.push(field); out.push(row); }
+  return out.filter(r => r.some(x => x !== ''));
+}
+function importCsv(file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const data = parseCsv(String(fr.result).replace(/^\ufeff/, ''));
+      if (data.length < 2) return setStatus(t('importFail'), true);
+      const h = data[0].map(x => x.trim()), ix = n => h.indexOf(n);
+      const num = v => { v = (v || '').trim(); return v === '' ? null : +v; };
+      let n = 0;
+      for (const row of data.slice(1)) {
+        const id = (row[ix('interest_id')] || '').trim();
+        if (!id || saved[id]) continue;
+        const st = (row[ix('status')] || '').trim();
+        saved[id] = {
+          id, name: row[ix('interest_name')] || '',
+          low: num(row[ix('audience_size_low')]), high: num(row[ix('audience_size_high')]),
+          path: row[ix('category_path')] || '', date: row[ix('date_checked')] || todayStr(),
+          note: 'imported', memo: row[ix('notes')] || '',
+          status: STATUS.includes(st) ? st : 'untested'
+        };
+        n++;
+      }
+      persist(); renderSaved(); setStatus(t('importDone')(n));
+    } catch (e) { setStatus(t('importFail'), true); }
+  };
+  fr.readAsText(file);
+}
 function md(list) {
   return '| Interest | ID | Audience | Category | Status |\n|---|---|---|---|---|\n' + list.map(r => '| ' + [r.name, r.id,
     sz(r).high == null ? '' : (r.th ? cc() + ' ' : 'global ') + fmt.format(sz(r).low ?? 0) + '–' + fmt.format(sz(r).high), r.path, r.status || ''].join(' | ') + ' |').join('\n');
@@ -411,6 +533,12 @@ function md(list) {
 async function copyList(list) {
   if (!list.length) return;
   try { await navigator.clipboard.writeText(md(list)); setStatus(t('copied')(list.length)); }
+  catch (e) { setStatus(t('copyFail'), true); }
+}
+async function copyNames() {
+  const list = picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible();
+  if (!list.length) return;
+  try { await navigator.clipboard.writeText(list.map(r => r.name).join('\n')); setStatus(t('namesCopied')(list.length)); }
   catch (e) { setStatus(t('copyFail'), true); }
 }
 function saveSelected() {
@@ -453,10 +581,41 @@ function renderHist() {
     h.appendChild(b);
   }
 }
+function getPresets() { try { return JSON.parse(localStorage.getItem('fbx_presets') || '{}'); } catch (e) { return {}; } }
+function setPresets(p) { try { localStorage.setItem('fbx_presets', JSON.stringify(p)); } catch (e) {} }
+function renderPresets(keep) {
+  const sel = $('#presetSel'), cur = keep ?? sel.value;
+  sel.textContent = '';
+  const none = document.createElement('option'); none.value = ''; none.textContent = t('presetNone'); sel.appendChild(none);
+  Object.keys(getPresets()).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
 $('#save').onclick = saveSelected;
 $('#copy').onclick = () => copyList(picked.size ? [...rows.values()].filter(r => picked.has(r.id)) : visible());
+$('#copyNames').onclick = copyNames;
 $('#scopy').onclick = () => copyList(Object.values(saved));
 $('#sexport').onclick = () => download(toCsv(Object.values(saved)));
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = e => { const f = e.target.files[0]; if (f) importCsv(f); e.target.value = ''; };
+$('#presetSave').onclick = () => {
+  const name = $('#presetName').value.trim();
+  if (!name) return setStatus(t('presetNeedName'), true);
+  const p = getPresets();
+  p[name] = {ageMin: $('#ageMin').value, ageMax: $('#ageMax').value, gender: $('#gender').value, mode: $('#mode').value, country: cc(), tLow: $('#tLow').value, tHigh: $('#tHigh').value};
+  setPresets(p); renderPresets(name); $('#presetName').value = ''; setStatus(t('presetSaved')(name));
+};
+$('#presetLoad').onclick = () => {
+  const name = $('#presetSel').value; if (!name) return;
+  const v = getPresets()[name]; if (!v) return;
+  $('#ageMin').value = v.ageMin; $('#ageMax').value = v.ageMax; $('#gender').value = v.gender; $('#mode').value = v.mode;
+  $('#country').value = v.country; $('#tLow').value = v.tLow; $('#tHigh').value = v.tHigh;
+  render(); setStatus(t('presetLoaded')(name));
+};
+$('#presetDel').onclick = () => {
+  const name = $('#presetSel').value; if (!name) return;
+  const p = getPresets(); delete p[name]; setPresets(p); renderPresets(''); setStatus(t('presetDeleted')(name));
+};
 $('#tLow').oninput = $('#tHigh').oninput = render;
 try { $('#act').value = localStorage.getItem('fbx_act') || ''; } catch (e) {}
 $('#act').oninput = () => { try { localStorage.setItem('fbx_act', $('#act').value); } catch (e) {} };
