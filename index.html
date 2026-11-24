@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="11" width="1240" height="900">
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="12" width="1240" height="900">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,6 +53,7 @@ th button:focus-visible{outline:2px solid var(--accent)}
 td.name b{font-weight:500}
 td.name small{display:block;color:var(--muted);font-size:12px}
 td.size{min-width:200px;font-variant-numeric:tabular-nums}
+td.size .tag{font-size:12px;color:var(--muted);margin-right:4px}
 td.size .pending{color:var(--muted);font-size:13px}
 .bar{height:6px;border-radius:3px;background:var(--bar);margin-top:4px}
 h2{font-size:16px;font-weight:600;margin:0 0 4px}
@@ -217,8 +218,8 @@ const T = {
     h1: 'กดปุ่ม "เปิด Graph API Explorer เพื่อคัดลอก access token" ด้านบน', h2: 'เลือก app ที่ได้รับเชิญ',
     h3: 'เพิ่มสิทธิ์ ads_read แล้วกด Generate Access Token', h4: 'คัดลอก token มาวาง (หมดอายุภายในไม่กี่ชั่วโมง สร้างใหม่ได้เสมอ)',
     seeds: 'Seed keywords (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'ชื่อ interest ส่วนใหญ่เป็นภาษาอังกฤษ ลองใส่คำอังกฤษเป็นหลัก',
-    suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ (ไทย)',
-    export: 'Export CSV', colName: 'Interest', colSize: 'ขนาด audience (ไทย)', selAll: 'เลือกทั้งหมดที่แสดง',
+    suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
+    export: 'Export CSV', colName: 'Interest', colSize: 'ขนาด audience', selAll: 'เลือกทั้งหมดที่แสดง',
     empty0: 'ยังไม่มีผลลัพธ์ ใส่ keyword แล้วกดค้นหา', emptyF: 'ไม่มีรายการที่ตรงกับตัวกรอง', noCat: 'ไม่มีข้อมูลหมวด', noData: 'ไม่มีข้อมูล', pick: 'เลือก ',
     needToken: 'วาง access token ก่อน', needSeed: 'ใส่ keyword อย่างน้อย 1 คำ',
     searching: (i, n, k) => 'กำลังค้น ' + i + '/' + n + ': ' + k, done: n => 'เสร็จแล้ว มี ' + n + ' interest',
@@ -234,7 +235,7 @@ const T = {
     estRes: (a, b, c) => 'ประมาณการ reach ใน ' + c + ': ' + a + ' – ' + b + ' คนต่อเดือน',
     local: 'ดึงขนาดไทยแล้วแสดงเฉพาะไทย', showAll: 'แสดงทั้งหมด',
     localing: (i, n, c) => 'กำลังดึงขนาดใน ' + c + ' ' + i + '/' + n, localDone: (n, c) => 'ได้ขนาดเฉพาะ ' + c + ' แล้ว ' + n + ' รายการ',
-    needLocal: 'รอดึงขนาดไทย (กดปุ่มดึงขนาดไทยแล้วแสดงเฉพาะไทย)',
+    needLocal: 'ยังไม่มีขนาดไทย', globalTag: 'ทั่วโลก', thTag: 'ไทย',
     eNet: 'เชื่อมต่อ Meta ไม่ได้ ตรวจอินเทอร์เน็ตหรือปิดตัวบล็อกโฆษณาแล้วลองใหม่',
     e190: 'token หมดอายุหรือไม่ถูกต้อง สร้างใหม่ที่ Graph API Explorer',
     e10: 'token ไม่มีสิทธิ์ ads_read หรือบัญชีนี้ยังไม่ได้รับสิทธิ์ใน app',
@@ -257,8 +258,8 @@ const T = {
     h1: 'Click "Open Graph API Explorer to copy your access token" above', h2: 'Select the app you were invited to',
     h3: 'Add the ads_read permission, then click Generate Access Token', h4: 'Copy the token and paste it here (it expires within a few hours; generate a new one any time)',
     seeds: 'Seed keywords (one per line)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'Most interest names are in English, so start with English keywords.',
-    suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size (TH)',
-    export: 'Export CSV', colName: 'Interest', colSize: 'Audience size (TH)', selAll: 'Select all shown',
+    suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
+    export: 'Export CSV', colName: 'Interest', colSize: 'Audience size', selAll: 'Select all shown',
     empty0: 'No results yet. Add keywords and click Search.', emptyF: 'No interests match the filters.', noCat: 'No category data', noData: 'No data', pick: 'Select ',
     needToken: 'Paste your access token first.', needSeed: 'Add at least one keyword.',
     searching: (i, n, k) => 'Searching ' + i + '/' + n + ': ' + k, done: n => 'Done. ' + n + ' interests found.',
@@ -274,7 +275,7 @@ const T = {
     estRes: (a, b, c) => 'Estimated reach in ' + c + ': ' + a + ' to ' + b + ' monthly people',
     local: 'Get Thailand size & show Thailand only', showAll: 'Show all',
     localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' interests sized for ' + c,
-    needLocal: 'Waiting for Thailand size (use Get Thailand size & show Thailand only)',
+    needLocal: 'No Thailand size yet', globalTag: 'global', thTag: 'TH',
     eNet: 'Cannot reach Meta. Check your connection or disable ad blockers, then try again.',
     e190: 'Token expired or invalid. Generate a new one in Graph API Explorer.',
     e10: 'Token lacks ads_read permission, or this account has no role in the app.',
@@ -333,11 +334,14 @@ async function api(params) {
   return j.data || [];
 }
 
+// เก็บขนาดทั่วโลกที่มาจากการค้นหา (ใช้เป็นค่าเริ่มต้นก่อนดึงขนาดไทย)
 function add(data, note) {
   for (const d of data) {
     if (!d.id || rows.has(d.id)) continue;
     rows.set(d.id, {
       id: d.id, name: d.name || '',
+      low: d.audience_size_lower_bound ?? null,
+      high: d.audience_size_upper_bound ?? null,
       path: (d.path || []).join(' > '), note
     });
   }
@@ -376,8 +380,13 @@ async function run() {
   busy = false; $('#go').disabled = false;
 }
 
-// ขนาดที่ใช้แสดงและเทียบ คือขนาดเฉพาะประเทศที่เลือก (ไม่ใช้ขนาดทั่วโลก)
+// sz = ขนาดเฉพาะประเทศที่เลือก ใช้กับการเทียบ ป้ายเตือน และการส่งออก
 const sz = r => r.th || {low: null, high: null};
+// disp = ขนาดที่แสดงในตาราง: ถ้าดึงไทยแล้วใช้ไทย ถ้ายังไม่ได้ดึงใช้ทั่วโลกเป็นค่าเริ่มต้น
+const disp = r => r.th
+  ? {low: r.th.low, high: r.th.high, isTh: true}
+  : {low: r.low ?? null, high: r.high ?? null, isTh: false};
+
 function cc() {
   let v = $('#country').value.trim();
   if (!/^[a-z]{2}$/i.test(v)) v = 'TH';
@@ -389,9 +398,9 @@ function visible(ignoreTh = false) {
   const min = +$('#min').value || 0;
   const list = [...rows.values()].filter(r =>
     (ignoreTh || !thOnly || !!r.th) &&
-    (!q || (r.name + ' ' + r.path).toLowerCase().includes(q)) && (sz(r).high ?? 0) >= min);
+    (!q || (r.name + ' ' + r.path).toLowerCase().includes(q)) && (disp(r).high ?? 0) >= min);
   list.sort((a, b) => {
-    const x = sortKey === 'high' ? sz(a).high : a[sortKey], y = sortKey === 'high' ? sz(b).high : b[sortKey];
+    const x = sortKey === 'high' ? disp(a).high : a[sortKey], y = sortKey === 'high' ? disp(b).high : b[sortKey];
     if (sortKey === 'name') return sortDir * String(x).localeCompare(String(y));
     return sortDir * ((x ?? -1) - (y ?? -1));
   });
@@ -420,18 +429,23 @@ function render() {
     const sm = document.createElement('small'); sm.textContent = r.path || t('noCat');
     c2.append(b, sm);
     const c3 = document.createElement('td'); c3.className = 'size';
-    const z = sz(r), txt = document.createElement('span');
-    if (z.high == null) {
-      txt.className = 'pending'; txt.textContent = t('needLocal');
-      c3.appendChild(txt);
+    const d = disp(r);
+    if (d.high == null) {
+      const p = document.createElement('span'); p.className = 'pending'; p.textContent = t('noData');
+      c3.appendChild(p);
     } else {
-      txt.textContent = cc() + ': ' + fmt.format(z.low ?? 0) + ' – ' + fmt.format(z.high);
-      const lo = +$('#tLow').value || 0, hi = +$('#tHigh').value || Infinity, bd = document.createElement('span');
-      bd.className = 'badge'; bd.textContent = z.high < lo ? t('small') : z.high > hi ? t('large') : t('ok');
-      txt.append(bd);
-      c3.appendChild(txt);
+      const tag = document.createElement('span'); tag.className = 'tag';
+      tag.textContent = d.isTh ? t('thTag') : t('globalTag');
+      const txt = document.createElement('span');
+      txt.textContent = fmt.format(d.low ?? 0) + ' – ' + fmt.format(d.high);
+      c3.append(tag, txt);
+      if (d.isTh) {
+        const lo = +$('#tLow').value || 0, hi = +$('#tHigh').value || Infinity, bd = document.createElement('span');
+        bd.className = 'badge'; bd.textContent = d.high < lo ? t('small') : d.high > hi ? t('large') : t('ok');
+        c3.appendChild(bd);
+      }
       const bar = document.createElement('div'); bar.className = 'bar';
-      bar.style.width = Math.max(2, Math.min(100, (Math.log10(z.high) - 3) / 6 * 100)) + '%';
+      bar.style.width = Math.max(2, Math.min(100, (Math.log10(d.high) - 3) / 6 * 100)) + '%';
       c3.appendChild(bar);
     }
     tr.append(c1, c2, c3); body.appendChild(tr);
