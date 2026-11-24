@@ -1,4 +1,4 @@
-<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="12" width="1240" height="900">
+<html data-type="html" data-identifier="82388ba8-5ee3-43ae-b40a-ba24a01de082" data-title="Interest explorer" data-version="14" width="1240" height="900">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -203,12 +203,28 @@ td select,td input[type=text]{padding:4px 8px;font-size:13px}
 
 <script>
 const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rows = new Map(), picked = new Set();
 let saved = {}, hist = [];
 let thOnly = false;
 try { saved = JSON.parse(localStorage.getItem('fbx_saved') || '{}'); hist = JSON.parse(localStorage.getItem('fbx_hist') || '[]'); } catch (e) {}
 const persist = () => { try { localStorage.setItem('fbx_saved', JSON.stringify(saved)); localStorage.setItem('fbx_hist', JSON.stringify(hist)); } catch (e) {} };
 const STATUS = ['untested', 'testing', 'winner', 'dropped'];
+
+// ประเภท Detailed targeting: cls สำหรับการค้นหา และ key สำหรับ targeting_spec
+const CATS = {
+  interests: {key: 'interests', label: 'catInterests'},
+  behaviors: {key: 'behaviors', cls: 'behaviors', label: 'catBehaviors'},
+  demographics: {key: 'demographics', cls: 'demographics', label: 'catDemographics'},
+  life_events: {key: 'life_events', cls: 'life_events', label: 'catLife'},
+  family_statuses: {key: 'family_statuses', cls: 'family_statuses', label: 'catFamily'},
+  income: {key: 'income', cls: 'income', label: 'catIncome'},
+  industries: {key: 'industries', cls: 'industries', label: 'catIndustries'},
+  politics: {key: 'politics', cls: 'politics', label: 'catPolitics'}
+};
+const catOf = r => CATS[r.cat] ? r.cat : 'interests';
+const tidOf = r => r.tid ?? r.id;
+
 const T = {
   th: {
     explorer: 'เปิด Graph API Explorer เพื่อคัดลอก access token',
@@ -217,19 +233,23 @@ const T = {
     locale: 'ภาษาผลลัพธ์', market: 'ตลาด', perSeed: 'ต่อคำ', apiVer: 'API version', howTo: 'วิธีสร้าง token',
     h1: 'กดปุ่ม "เปิด Graph API Explorer เพื่อคัดลอก access token" ด้านบน', h2: 'เลือก app ที่ได้รับเชิญ',
     h3: 'เพิ่มสิทธิ์ ads_read แล้วกด Generate Access Token', h4: 'คัดลอก token มาวาง (หมดอายุภายในไม่กี่ชั่วโมง สร้างใหม่ได้เสมอ)',
-    seeds: 'Seed keywords (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'ชื่อ interest ส่วนใหญ่เป็นภาษาอังกฤษ ลองใส่คำอังกฤษเป็นหลัก',
+    catInterests: 'Interests (ความสนใจ)', catBehaviors: 'Behaviors (พฤติกรรม)', catDemographics: 'Demographics (ข้อมูลประชากร)',
+    catLife: 'Life events (เหตุการณ์ในชีวิต)', catFamily: 'Family statuses (สถานะครอบครัว)', catIncome: 'Income (รายได้)', catIndustries: 'Industries (อุตสาหกรรม)', catPolitics: 'Politics (การเมือง)',
+    catSearching: n => 'กำลังดึงรายการ ' + n + ' (อาจใช้เวลาหลายนาที)', partialFail: 'บางประเภทดึงไม่ได้',
+    seeds: 'คำค้น (บรรทัดละคำ)', seedsPh: 'yoga\npilates\nwellness',
+    seedsHint: 'ใส่คำค้นเพื่อค้นทุกประเภทพร้อมกันและกรองตามชื่อ ถ้าไม่ใส่คำค้น ระบบจะดึงรายการทั้งหมดของประเภทอื่น (Behaviors, Demographics ฯลฯ) ซึ่งอาจมีหลายพันรายการ',
     suggest: 'ดึง interest ที่เกี่ยวข้องเพิ่ม', go: 'ค้นหา', clear: 'ล้างผลลัพธ์', filterPh: 'กรองตามชื่อหรือหมวด', minPh: 'ขนาดขั้นต่ำ',
-    export: 'Export CSV', colName: 'Interest', colSize: 'ขนาด audience', selAll: 'เลือกทั้งหมดที่แสดง',
-    empty0: 'ยังไม่มีผลลัพธ์ ใส่ keyword แล้วกดค้นหา', emptyF: 'ไม่มีรายการที่ตรงกับตัวกรอง', noCat: 'ไม่มีข้อมูลหมวด', noData: 'ไม่มีข้อมูล', pick: 'เลือก ',
-    needToken: 'วาง access token ก่อน', needSeed: 'ใส่ keyword อย่างน้อย 1 คำ',
-    searching: (i, n, k) => 'กำลังค้น ' + i + '/' + n + ': ' + k, done: n => 'เสร็จแล้ว มี ' + n + ' interest',
+    export: 'Export CSV', colName: 'รายการ', colSize: 'ขนาด audience', selAll: 'เลือกทั้งหมดที่แสดง',
+    empty0: 'ยังไม่มีผลลัพธ์ ใส่คำค้นแล้วกดค้นหา', emptyF: 'ไม่มีรายการที่ตรงกับตัวกรอง', noCat: 'ไม่มีข้อมูลหมวด', noData: 'ไม่มีข้อมูล', pick: 'เลือก ',
+    needToken: 'วาง access token ก่อน',
+    searching: (i, n, k) => 'กำลังค้น ' + i + '/' + n + ': ' + k, done: n => 'เสร็จแล้ว มี ' + n + ' รายการ',
     counts: (a, b, c) => 'แสดง ' + a + ' จาก ' + b + ' · เลือกแล้ว ' + c,
     tLow: 'เล็กถ้าน้อยกว่า', tHigh: 'ใหญ่ถ้ามากกว่า', small: 'เล็ก', ok: 'พอดี', large: 'ใหญ่', save: 'บันทึกที่เลือก', copy: 'Copy for Claude',
     savedT: 'รายการที่บันทึกไว้', savedHint: 'เก็บในเบราว์เซอร์นี้ ตั้งสถานะและโน้ตได้', sempty: 'ยังไม่มีรายการที่บันทึก ติ๊กเลือกแล้วกดบันทึกที่เลือก',
     saved: n => 'บันทึก ' + n + ' รายการแล้ว', copied: n => 'คัดลอก ' + n + ' รายการแล้ว วางในแชท Claude ได้เลย', copyFail: 'คัดลอกไม่สำเร็จ ลองใช้ Export CSV แทน',
     recent: 'ค้นล่าสุด:', memoPh: 'โน้ต', remove: 'ลบ',
-    bT: 'ประเมิน reach ของ interest ที่เลือก (เฉพาะตลาดที่เลือก)', bHint: 'ใช้ interest ที่ติ๊กเลือกในตารางด้านบน ตลาดใช้ค่าในช่อง "ตลาด" ที่แถบซ้าย',
-    using: n => 'ใช้ interest ที่เลือก ' + n + ' รายการ', act: 'Ad account ID', ageMin: 'อายุต่ำสุด', ageMax: 'อายุสูงสุด (65 = 65+)',
+    bT: 'ประเมิน reach ของรายการที่เลือก (เฉพาะตลาดที่เลือก)', bHint: 'ใช้รายการที่ติ๊กเลือกในตารางด้านบน ตลาดใช้ค่าในช่อง "ตลาด" ที่แถบซ้าย',
+    using: n => 'ใช้รายการที่เลือก ' + n + ' รายการ', act: 'Ad account ID', ageMin: 'อายุต่ำสุด', ageMax: 'อายุสูงสุด (65 = 65+)',
     gender: 'เพศ', gAll: 'ทั้งหมด', gM: 'ชาย', gF: 'หญิง', mode: 'การจับคู่', mAny: 'ตรงข้อใดข้อหนึ่ง (OR)', mAll: 'ต้องตรงทุกข้อ (AND)',
     est: 'ประเมิน reach', needAct: 'ใส่ ad account ID ก่อน', estimating: 'กำลังประเมิน...', noEst: 'ไม่พบค่า reach ในผลลัพธ์ ข้อมูลดิบ:',
     estRes: (a, b, c) => 'ประมาณการ reach ใน ' + c + ': ' + a + ' – ' + b + ' คนต่อเดือน',
@@ -240,8 +260,8 @@ const T = {
     e190: 'token หมดอายุหรือไม่ถูกต้อง สร้างใหม่ที่ Graph API Explorer',
     e10: 'token ไม่มีสิทธิ์ ads_read หรือบัญชีนี้ยังไม่ได้รับสิทธิ์ใน app',
     eRate: 'เรียก API ถี่เกินไป รอสักครู่แล้วลองใหม่', eMeta: m => 'Meta แจ้งว่า: ' + m, eUnk: 'เกิดข้อผิดพลาด',
-    cmpTitle: 'เทียบ interest ที่เลือก (ขนาดไทย)', cmpHint: 'แสดงเฉพาะรายการที่ติ๊กเลือก ป้ายเตือนอ้างอิงจากค่า "เล็กถ้าน้อยกว่า" และ "ใหญ่ถ้ามากกว่า"',
-    cmpEmpty: 'ติ๊กเลือก interest ในตารางด้านบนเพื่อเทียบ', colCat: 'หมวด', colWarn: 'สถานะขนาด',
+    cmpTitle: 'เทียบรายการที่เลือก (ขนาดไทย)', cmpHint: 'แสดงเฉพาะรายการที่ติ๊กเลือก ป้ายเตือนอ้างอิงจากค่า "เล็กถ้าน้อยกว่า" และ "ใหญ่ถ้ามากกว่า"',
+    cmpEmpty: 'ติ๊กเลือกรายการในตารางด้านบนเพื่อเทียบ', colCat: 'ประเภท', colWarn: 'สถานะขนาด',
     warnSmall: 'เล็กเกินไป', warnLarge: 'กว้างเกินไป', warnOk: 'พอดี', warnNoData: 'ยังไม่มีขนาดไทย',
     copyNames: 'คัดลอกชื่อ (สำหรับ Ads Manager)', namesCopied: n => 'คัดลอกชื่อ ' + n + ' รายการแล้ว วางในช่องค้นหาของ Ads Manager ได้เลย',
     importCsv: 'นำเข้า CSV', importDone: n => 'นำเข้าแล้ว ' + n + ' รายการ (ข้ามรายการที่มีอยู่แล้ว)', importFail: 'อ่านไฟล์ไม่สำเร็จ ตรวจว่าเป็นไฟล์ CSV ที่ส่งออกจากเครื่องมือนี้',
@@ -257,34 +277,38 @@ const T = {
     locale: 'Result language', market: 'Market', perSeed: 'Per seed', apiVer: 'API version', howTo: 'How to get a token',
     h1: 'Click "Open Graph API Explorer to copy your access token" above', h2: 'Select the app you were invited to',
     h3: 'Add the ads_read permission, then click Generate Access Token', h4: 'Copy the token and paste it here (it expires within a few hours; generate a new one any time)',
-    seeds: 'Seed keywords (one per line)', seedsPh: 'yoga\npilates\nwellness', seedsHint: 'Most interest names are in English, so start with English keywords.',
+    catInterests: 'Interests', catBehaviors: 'Behaviors', catDemographics: 'Demographics',
+    catLife: 'Life events', catFamily: 'Family statuses', catIncome: 'Income', catIndustries: 'Industries', catPolitics: 'Politics',
+    catSearching: n => 'Fetching ' + n + ' (this may take a few minutes)', partialFail: 'Some types failed',
+    seeds: 'Keywords (one per line)', seedsPh: 'yoga\npilates\nwellness',
+    seedsHint: 'Enter keywords to search all types at once and filter by name. If left empty, all items of the other types are fetched (Behaviors, Demographics, etc.), which may be thousands of items.',
     suggest: 'Also fetch related interests', go: 'Search', clear: 'Clear results', filterPh: 'Filter by name or category', minPh: 'Min. size',
-    export: 'Export CSV', colName: 'Interest', colSize: 'Audience size', selAll: 'Select all shown',
-    empty0: 'No results yet. Add keywords and click Search.', emptyF: 'No interests match the filters.', noCat: 'No category data', noData: 'No data', pick: 'Select ',
-    needToken: 'Paste your access token first.', needSeed: 'Add at least one keyword.',
-    searching: (i, n, k) => 'Searching ' + i + '/' + n + ': ' + k, done: n => 'Done. ' + n + ' interests found.',
+    export: 'Export CSV', colName: 'Item', colSize: 'Audience size', selAll: 'Select all shown',
+    empty0: 'No results yet. Enter keywords and click Search.', emptyF: 'No items match the filters.', noCat: 'No category data', noData: 'No data', pick: 'Select ',
+    needToken: 'Paste your access token first.',
+    searching: (i, n, k) => 'Searching ' + i + '/' + n + ': ' + k, done: n => 'Done. ' + n + ' items found.',
     counts: (a, b, c) => 'Showing ' + a + ' of ' + b + ' · ' + c + ' selected',
     tLow: 'Small below', tHigh: 'Large above', small: 'small', ok: 'fits', large: 'large', save: 'Save selected', copy: 'Copy for Claude',
-    savedT: 'Saved interests', savedHint: 'Stored in this browser. Set a status and notes.', sempty: 'Nothing saved yet. Tick interests and click Save selected.',
+    savedT: 'Saved items', savedHint: 'Stored in this browser. Set a status and notes.', sempty: 'Nothing saved yet. Tick items and click Save selected.',
     saved: n => n + ' saved', copied: n => n + ' copied. Paste into your Claude chat.', copyFail: 'Copy failed. Try Export CSV instead.',
     recent: 'Recent:', memoPh: 'Note', remove: 'Remove',
-    bT: 'Estimate reach for selected interests (selected market only)', bHint: 'Uses the interests ticked in the table above. The market comes from the Market field in the sidebar.',
-    using: n => n + ' selected interests will be used', act: 'Ad account ID', ageMin: 'Min age', ageMax: 'Max age (65 = 65+)',
+    bT: 'Estimate reach for selected items (selected market only)', bHint: 'Uses the items ticked in the table above. The market comes from the Market field in the sidebar.',
+    using: n => n + ' selected items will be used', act: 'Ad account ID', ageMin: 'Min age', ageMax: 'Max age (65 = 65+)',
     gender: 'Gender', gAll: 'All', gM: 'Men', gF: 'Women', mode: 'Matching', mAny: 'Match any (OR)', mAll: 'Match all (AND)',
     est: 'Estimate reach', needAct: 'Enter an ad account ID first.', estimating: 'Estimating...', noEst: 'No reach value found. Raw data:',
     estRes: (a, b, c) => 'Estimated reach in ' + c + ': ' + a + ' to ' + b + ' monthly people',
     local: 'Get Thailand size & show Thailand only', showAll: 'Show all',
-    localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' interests sized for ' + c,
+    localing: (i, n, c) => 'Fetching ' + c + ' size ' + i + '/' + n, localDone: (n, c) => n + ' items sized for ' + c,
     needLocal: 'No Thailand size yet', globalTag: 'global', thTag: 'TH',
     eNet: 'Cannot reach Meta. Check your connection or disable ad blockers, then try again.',
     e190: 'Token expired or invalid. Generate a new one in Graph API Explorer.',
     e10: 'Token lacks ads_read permission, or this account has no role in the app.',
     eRate: 'Too many requests. Wait a moment and try again.', eMeta: m => 'Meta says: ' + m, eUnk: 'Something went wrong',
-    cmpTitle: 'Compare selected interests (Thailand size)', cmpHint: 'Shows only ticked interests. Warnings use the "Small below" and "Large above" values.',
-    cmpEmpty: 'Tick interests in the table above to compare them', colCat: 'Category', colWarn: 'Size check',
+    cmpTitle: 'Compare selected items (Thailand size)', cmpHint: 'Shows only ticked items. Warnings use the "Small below" and "Large above" values.',
+    cmpEmpty: 'Tick items in the table above to compare them', colCat: 'Type', colWarn: 'Size check',
     warnSmall: 'Too small', warnLarge: 'Too broad', warnOk: 'Fits', warnNoData: 'No Thailand size yet',
     copyNames: 'Copy names (for Ads Manager)', namesCopied: n => n + ' names copied. Paste them into the Ads Manager search box.',
-    importCsv: 'Import CSV', importDone: n => 'Imported ' + n + ' interests (existing ones were skipped)', importFail: 'Could not read the file. Make sure it is a CSV exported from this tool.',
+    importCsv: 'Import CSV', importDone: n => 'Imported ' + n + ' items (existing ones were skipped)', importFail: 'Could not read the file. Make sure it is a CSV exported from this tool.',
     presetTitle: 'Presets', presetHint: 'Save age, gender, matching, market and size range to reuse later.',
     presetPick: 'Choose a preset', presetName: 'Preset name to save', presetNone: '— none —',
     presetLoad: 'Apply', presetSave: 'Save preset', presetDel: 'Delete preset',
@@ -316,10 +340,13 @@ try {
 
 function setStatus(msg, err) { const s = $('#status'); s.textContent = msg; s.className = err ? 'err' : ''; }
 
-async function api(params) {
+function searchUrl(params) {
   const ver = $('#ver').value.trim() || 'v27.0';
   const url = new URL('https://graph.facebook.com/' + ver + '/search');
   Object.entries({...params, access_token: token}).forEach(([k, v]) => url.searchParams.set(k, v));
+  return url;
+}
+async function getJson(url) {
   let res;
   try { res = await fetch(url); }
   catch (e) { throw new Error(t('eNet')); }
@@ -331,15 +358,33 @@ async function api(params) {
     if ([4, 17, 32, 613].includes(c)) throw new Error(t('eRate'));
     throw new Error(t('eMeta')(j.error.message || t('eUnk')));
   }
+  return j;
+}
+async function api(params) {
+  const j = await getJson(searchUrl(params));
   return j.data || [];
 }
+// ดึงทุกหน้า (paging) จนครบหรือถึงจำนวนหน้าสูงสุด
+async function apiAll(params, maxPages = 30) {
+  let url = searchUrl(params), out = [];
+  for (let p = 0; p < maxPages && url; p++) {
+    const j = await getJson(url);
+    out.push(...(j.data || []));
+    url = j.paging && j.paging.next ? j.paging.next : null;
+    if (url) await sleep(300);
+  }
+  return out;
+}
 
-// เก็บขนาดทั่วโลกที่มาจากการค้นหา (ใช้เป็นค่าเริ่มต้นก่อนดึงขนาดไทย)
-function add(data, note) {
+// เก็บรายการ: key = ประเภท:id เพื่อไม่ให้ id ของคนละประเภทชนกัน
+function add(data, cat, note) {
   for (const d of data) {
-    if (!d.id || rows.has(d.id)) continue;
-    rows.set(d.id, {
-      id: d.id, name: d.name || '',
+    if (!d.id) continue;
+    const key = cat + ':' + d.id;
+    if (rows.has(key)) continue;
+    rows.set(key, {
+      id: key, tid: d.id, cat,
+      name: d.name || '',
       low: d.audience_size_lower_bound ?? null,
       high: d.audience_size_upper_bound ?? null,
       path: (d.path || []).join(' > '), note
@@ -347,6 +392,7 @@ function add(data, note) {
   }
 }
 
+// ค้นทุกประเภทพร้อมกัน: Interests ค้นด้วยคำค้น ส่วนประเภทอื่นดึงทั้งหมดแล้วกรองตามคำค้น
 async function run() {
   if (busy) return;
   token = $('#token').value.trim();
@@ -356,28 +402,42 @@ async function run() {
     else localStorage.removeItem('fbx_token');
   } catch (e) {}
   const seeds = $('#seeds').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!seeds.length) return setStatus(t('needSeed'), true);
-  hist = [...seeds, ...hist.filter(h => !seeds.includes(h))].slice(0, 30); persist(); renderHist();
+  if (seeds.length) { hist = [...seeds, ...hist.filter(h => !seeds.includes(h))].slice(0, 30); persist(); renderHist(); }
   const limit = Math.min(100, Math.max(1, +$('#limit').value || 100));
   const locale = $('#locale').value;
   busy = true; $('#go').disabled = true;
+  const fails = [];
   try {
     for (let i = 0; i < seeds.length; i++) {
       const kw = seeds[i];
       setStatus(t('searching')(i + 1, seeds.length, kw));
-      const data = await api({type: 'adinterest', q: kw, limit, locale});
-      add(data, 'seed: ' + kw);
-      if ($('#suggest').checked && data.length) {
-        const names = data.slice(0, 5).map(d => d.name);
-        const sug = await api({type: 'adinterestsuggestion', interest_list: JSON.stringify(names), limit, locale});
-        add(sug, 'suggested from: ' + kw);
-      }
+      try {
+        const data = await api({type: 'adinterest', q: kw, limit, locale});
+        add(data, 'interests', 'seed: ' + kw);
+        if ($('#suggest').checked && data.length) {
+          const names = data.slice(0, 5).map(d => d.name);
+          const sug = await api({type: 'adinterestsuggestion', interest_list: JSON.stringify(names), limit, locale});
+          add(sug, 'interests', 'suggested from: ' + kw);
+        }
+      } catch (e) { fails.push(kw + ': ' + e.message); }
       render();
-      await new Promise(r => setTimeout(r, 400));
+      await sleep(400);
     }
-    setStatus(t('done')(rows.size));
+    const kws = seeds.map(s => s.toLowerCase());
+    for (const cat of Object.keys(CATS).filter(k => k !== 'interests')) {
+      setStatus(t('catSearching')(t(CATS[cat].label)));
+      try {
+        const data = await apiAll({type: 'adTargetingCategory', class: CATS[cat].cls, limit: 100, locale});
+        const list = kws.length ? data.filter(d => kws.some(k => (d.name || '').toLowerCase().includes(k))) : data;
+        add(list, cat, 'category: ' + CATS[cat].cls);
+      } catch (e) { fails.push(t(CATS[cat].label) + ': ' + e.message); }
+      render();
+    }
+    const msg = t('done')(rows.size) + (fails.length ? ' · ' + t('partialFail') + ': ' + fails.join(' | ') : '');
+    setStatus(msg, fails.length > 0 && rows.size === 0);
   } catch (e) { setStatus(e.message, true); }
   busy = false; $('#go').disabled = false;
+  render();
 }
 
 // sz = ขนาดเฉพาะประเทศที่เลือก ใช้กับการเทียบ ป้ายเตือน และการส่งออก
@@ -426,7 +486,8 @@ function render() {
     c1.appendChild(cb);
     const c2 = document.createElement('td'); c2.className = 'name';
     const b = document.createElement('b'); b.textContent = r.name;
-    const sm = document.createElement('small'); sm.textContent = r.path || t('noCat');
+    const sm = document.createElement('small');
+    sm.textContent = t(CATS[catOf(r)].label) + (r.path ? ' · ' + r.path : '');
     c2.append(b, sm);
     const c3 = document.createElement('td'); c3.className = 'size';
     const d = disp(r);
@@ -471,7 +532,7 @@ function renderCompare() {
     const c1 = document.createElement('td'); c1.textContent = r.name;
     const c2 = document.createElement('td');
     c2.textContent = z.high == null ? t('needLocal') : fmt.format(z.low ?? 0) + ' – ' + fmt.format(z.high);
-    const c3 = document.createElement('td'); c3.textContent = r.path || t('noCat');
+    const c3 = document.createElement('td'); c3.textContent = t(CATS[catOf(r)].label);
     const c4 = document.createElement('td'), w = warnText(z);
     c4.textContent = w;
     c4.className = (w === t('warnSmall') || w === t('warnLarge')) ? 'warn' : (w === t('warnOk') ? 'ok' : '');
@@ -505,7 +566,7 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 function toCsv(list) {
   const head = ['interest_name', 'interest_id', 'audience_size_low', 'audience_size_high', 'category_path', 'date_checked', 'country', 'notes', 'status'];
   const country = cc();
-  return [head.join(',')].concat(list.map(r => [r.name, r.id, sz(r).low, sz(r).high, r.path, r.date || todayStr(), country,
+  return [head.join(',')].concat(list.map(r => [r.name, tidOf(r), sz(r).low, sz(r).high, r.path, r.date || todayStr(), country,
     [r.note, r.memo].filter(Boolean).join(' | '), r.status || 'untested'].map(csvCell).join(','))).join('\r\n');
 }
 function download(csv) {
@@ -540,16 +601,18 @@ function importCsv(file) {
       let n = 0;
       for (const row of data.slice(1)) {
         const id = (row[ix('interest_id')] || '').trim();
-        if (!id || saved[id]) continue;
+        const key = 'interests:' + id;
+        if (!id || saved[key]) continue;
         const st = (row[ix('status')] || '').trim();
         const lo = num(row[ix('audience_size_low')]), hi = num(row[ix('audience_size_high')]);
-        saved[id] = {
-          id, name: row[ix('interest_name')] || '',
+        saved[key] = {
+          id: key, tid: id, cat: 'interests',
+          name: row[ix('interest_name')] || '',
           path: row[ix('category_path')] || '', date: row[ix('date_checked')] || todayStr(),
           note: 'imported', memo: row[ix('notes')] || '',
           status: STATUS.includes(st) ? st : 'untested'
         };
-        if (hi != null) saved[id].th = {low: lo ?? 0, high: hi};
+        if (hi != null) saved[key].th = {low: lo ?? 0, high: hi};
         n++;
       }
       persist(); renderSaved(); setStatus(t('importDone')(n));
@@ -558,7 +621,7 @@ function importCsv(file) {
   fr.readAsText(file);
 }
 function md(list) {
-  return '| Interest | ID | Audience | Category | Status |\n|---|---|---|---|---|\n' + list.map(r => '| ' + [r.name, r.id,
+  return '| Item | ID | Audience | Category | Status |\n|---|---|---|---|---|\n' + list.map(r => '| ' + [r.name, tidOf(r),
     sz(r).high == null ? '' : cc() + ' ' + fmt.format(sz(r).low ?? 0) + '–' + fmt.format(sz(r).high), r.path, r.status || ''].join(' | ') + ' |').join('\n');
 }
 async function copyList(list) {
@@ -584,11 +647,12 @@ function renderSaved() {
     const tr = document.createElement('tr');
     const c1 = document.createElement('td'); c1.className = 'name';
     const n = document.createElement('b'); n.textContent = r.name;
-    const sm = document.createElement('small'); sm.textContent = (sz(r).high == null ? '' : cc() + ' ' + fmt.format(sz(r).low ?? 0) + ' – ' + fmt.format(sz(r).high) + ' · ') + (r.path || '');
+    const sm = document.createElement('small');
+    sm.textContent = (sz(r).high == null ? '' : cc() + ' ' + fmt.format(sz(r).low ?? 0) + ' – ' + fmt.format(sz(r).high) + ' · ') + t(CATS[catOf(r)].label);
     c1.append(n, sm);
     const c2 = document.createElement('td'), sel = document.createElement('select');
     STATUS.forEach(x => { const o = document.createElement('option'); o.value = o.textContent = x; sel.appendChild(o); });
-    sel.value = r.status; sel.onchange = () => { r.status = sel.value; persist(); };
+    sel.value = r.status || 'untested'; sel.onchange = () => { r.status = sel.value; persist(); };
     c2.appendChild(sel);
     const c3 = document.createElement('td'), inp = document.createElement('input');
     inp.type = 'text'; inp.value = r.memo || ''; inp.placeholder = t('memoPh'); inp.setAttribute('aria-label', t('memoPh'));
@@ -652,11 +716,24 @@ try { $('#act').value = localStorage.getItem('fbx_act') || ''; } catch (e) {}
 $('#act').oninput = () => { try { localStorage.setItem('fbx_act', $('#act').value); } catch (e) {} };
 const bmsg = (m, err) => { const b = $('#bres'); b.textContent = m; b.style.color = err ? 'var(--err)' : 'var(--muted)'; };
 function actId() { const v = $('#act').value.trim().replace(/^act_/, ''); return v ? 'act_' + v : ''; }
+
+// จัดกลุ่มรายการที่เลือกตาม key ของ targeting_spec (interests, behaviors, ...)
+function groupItems(list) {
+  const g = {};
+  for (const r of list) {
+    const k = CATS[catOf(r)].key;
+    (g[k] = g[k] || []).push({id: tidOf(r), name: r.name});
+  }
+  return g;
+}
 function spec() {
-  const ints = [...rows.values()].filter(r => picked.has(r.id)).map(r => ({id: r.id, name: r.name}));
+  const list = [...rows.values()].filter(r => picked.has(r.id));
   const sp = {geo_locations: {countries: [cc()]}, age_min: +$('#ageMin').value || 18, age_max: +$('#ageMax').value || 65};
   if ($('#gender').value) sp.genders = [+$('#gender').value];
-  sp.flexible_spec = $('#mode').value === 'and' ? ints.map(i => ({interests: [i]})) : [{interests: ints}];
+  // AND: แต่ละรายการเป็นกลุ่มของตัวเอง / OR: รวมไว้ในกลุ่มเดียว (ควรทดสอบการทำงานร่วมกันของหลายประเภทใน Explorer)
+  sp.flexible_spec = $('#mode').value === 'and'
+    ? list.map(r => ({[CATS[catOf(r)].key]: [{id: tidOf(r), name: r.name}]}))
+    : [groupItems(list)];
   return sp;
 }
 async function graph(path, params, post) {
@@ -701,7 +778,8 @@ async function fetchLocal() {
   for (let i = 0; i < list.length; i++) {
     const r = list[i];
     setStatus(t('localing')(i + 1, list.length, code));
-    const sp = {geo_locations: {countries: [code]}, age_min: +$('#ageMin').value || 18, age_max: +$('#ageMax').value || 65, flexible_spec: [{interests: [{id: r.id, name: r.name}]}]};
+    const sp = {geo_locations: {countries: [code]}, age_min: +$('#ageMin').value || 18, age_max: +$('#ageMax').value || 65,
+      flexible_spec: [{[CATS[catOf(r)].key]: [{id: tidOf(r), name: r.name}]}]};
     if ($('#gender').value) sp.genders = [+$('#gender').value];
     try {
       const j = await graph(id + '/delivery_estimate', {targeting_spec: JSON.stringify(sp), optimization_goal: 'REACH'});
@@ -709,7 +787,7 @@ async function fetchLocal() {
       const lo = d.estimate_mau_lower_bound ?? d.users_lower_bound, hi = d.estimate_mau_upper_bound ?? d.users_upper_bound;
       if (lo != null) { r.th = {low: lo, high: hi ?? lo}; n++; render(); }
     } catch (e) { setStatus(e.message, true); busy = false; render(); return; }
-    await new Promise(x => setTimeout(x, 700));
+    await sleep(700);
   }
   busy = false; setStatus(t('localDone')(n, code)); render();
 }
